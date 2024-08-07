@@ -1,0 +1,2 @@
+NAME=IntelliJ IDEA
+COMMAND=idea

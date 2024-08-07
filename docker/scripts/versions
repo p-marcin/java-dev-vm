@@ -1,0 +1,205 @@
+#!/bin/bash -i
+# DISPLAY DEPENDENCY VERSIONS INSTALLED ON THE SYSTEM
+
+set -o errexit  # ABORT ON NON-ZERO EXIT STATUS
+set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
+
+# CONSTANTS
+readonly ARGS=( "${@}" )
+readonly SEPARATOR=$(printf "%.s#" {1..75})
+# COLORS
+readonly RESET="\033[0m"
+readonly GREEN="\033[1;32m"
+readonly YELLOW="\033[1;33m"
+
+main() {
+  options "${ARGS[@]}"
+  logSection "SYSTEM"
+  logVersion "UBUNTU DEV VM" "$(getUbuntuDevVmVersion)"
+  logVersion "UBUNTU" "$(getUbuntuVersion)"
+  logVersion "KERNEL" "$(getKernelVersion)"
+  logVersion "KITTY TERMINAL" "$(getKittyVersion)"
+  logVersion "FIREFOX" "$(getFirefoxVersion)"
+  logSection "APPS"
+  logVersion "INTELLIJ IDEA" "$(getIntellijIdeaVersion)"
+  logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
+  logVersion "POSTMAN" "$(getPostmanVersion)"
+  logSection "VERSION CONTROL"
+  logVersion "GIT" "$(getGitVersion)"
+  logVersion "GIT LFS" "$(getGitLfsVersion)"
+  logSection "JAVA"
+  logVersion "SDKMAN" "$(getSdkManVersion)"
+  logVersion "JAVA" "$(getSdkManDependencyVersion "java")"
+  logVersion "MAVEN" "$(getSdkManDependencyVersion "maven")"
+  logVersion "SPRING BOOT CLI" "$(getSdkManDependencyVersion "springboot")"
+  logVersion "KAFKA" "$(getKafkaVersion)"
+  logSection "CLOUD"
+  logVersion "DOCKER CLIENT" "$(getDockerClientVersion)"
+  logVersion "DOCKER SERVER" "$(getDockerServerVersion)"
+  logVersion "CTOP" "$(getCtopVersion)"
+  logVersion "KUBECTL CLIENT" "$(getKubectlClientVersion)"
+  logVersion "KUBECTL SERVER" "$(getKubectlServerVersion)"
+  logVersion "KUBECTL KREW" "$(getKubectlKrewVersion)"
+  logVersion "K3D" "$(getK3dVersion)"
+  logVersion "HELM" "$(getHelmVersion)"
+  logVersion "K9S" "$(getK9sVersion)"
+  logSeparator
+}
+
+options() {
+  while (( ${#} > 0 )); do
+    case "${1}" in
+      *) help;;
+    esac
+    shift
+  done
+}
+
+help() {
+  cat << EOF
+Usage: ${0}
+
+Display dependency versions installed on the system
+EOF
+  exit 1
+}
+
+logSection() {
+  local sectionName="${1}"
+  logSeparator
+  printf "%b#%b %b%-71s%b %b#%b\n" \
+    "${YELLOW}" "${RESET}" \
+    "${GREEN}" "${sectionName}" "${RESET}"\
+    "${YELLOW}" "${RESET}"
+  logSeparator
+}
+
+logSeparator() {
+  printf "%b%s%b\n" "${YELLOW}" "${SEPARATOR}" "${RESET}"
+}
+
+logVersion() {
+  printf "%b|%b %-28s %b|%b %-40s %b|%b\n" \
+    "${YELLOW}" "${RESET}" \
+    "${1}" \
+    "${YELLOW}" "${RESET}" \
+    "${2}" \
+    "${YELLOW}" "${RESET}"
+}
+
+getUbuntuDevVmVersion() {
+  cat "/etc/.ubuntu-dev-vm.version"
+}
+
+getUbuntuVersion() {
+  grep "VERSION=" "/etc/os-release" | sed "s/.*=\"//;s/ .*//"
+}
+
+getKernelVersion() {
+  uname -s -r | sed "s/.* //"
+}
+
+getKittyVersion() {
+  isPackageInstalled "kitty" \
+      && kitty --version | sed "s/kitty //;s/ created.*//"
+}
+
+getFirefoxVersion() {
+  isPackageInstalled "firefox" \
+    && /usr/bin/firefox --version | sed "s/.* //"
+}
+
+getIntellijIdeaVersion() {
+  [[ -d "/opt/intellij-idea" ]] \
+    && jq ".version" "/opt/intellij-idea/product-info.json" | tr -d "\""
+}
+
+getKeystoreExplorerVersion() {
+  isPackageInstalled "kse" \
+    && unzip -p "/opt/keystore-explorer/kse.jar" "org/kse/version.properties" | grep "KSE.Version" | sed "s/.*=//"
+}
+
+getPostmanVersion() {
+  [[ -d "/opt/postman" ]] \
+    && jq ".version" "/opt/postman/resources/app/package.json" | tr -d "\""
+}
+
+getGitVersion() {
+  isPackageInstalled "git" \
+    && git version | sed "s/.*version //"
+}
+
+getGitLfsVersion() {
+  isPackageInstalled "git-lfs" \
+    && git lfs version | sed "s/.*\///;s/ (.*//"
+}
+
+getSdkManVersion() {
+  isPackageInstalled "sdk" \
+    && cat "/opt/sdkman/var/version"
+}
+
+getSdkManDependencyVersion() {
+  if isPackageInstalled "sdk"; then
+    local dependency="${1}"
+    readlink "/opt/sdkman/candidates/${dependency}/current"
+  fi
+}
+
+getKafkaVersion() {
+  [[ -d "/opt/kafka" ]] \
+    && ls "/opt/kafka/libs" | grep -m 1 "kafka-server" | sed "s/.*-//;s/.jar//"
+}
+
+
+getDockerClientVersion() {
+  isPackageInstalled "docker" \
+    && docker version --format "{{.Client.Version}}"
+}
+
+getDockerServerVersion() {
+  isPackageInstalled "docker" \
+    && docker version --format "{{.Server.Version}}"
+}
+
+getCtopVersion() {
+  isPackageInstalled "ctop" \
+    && ctop -v | sed "s/.*version //;s/,.*//"
+}
+
+getKubectlClientVersion() {
+  isPackageInstalled "kubectl" \
+    && kubectl version --client | grep "Client Version:" | sed "s/.*v//"
+}
+
+getKubectlServerVersion() {
+  isPackageInstalled "k3d" \
+    && k3d version | grep "k3s" | sed "s/.*v//;s/ (.*//"
+}
+
+getKubectlKrewVersion() {
+  [[ -d "${HOME}/.krew" ]] \
+    && kubectl krew version | grep "GitTag" | sed "s/.*v//"
+}
+
+getK3dVersion() {
+  isPackageInstalled "k3d" \
+    && k3d version | grep "k3d" | sed "s/.*v//"
+}
+
+getHelmVersion() {
+  isPackageInstalled "helm" \
+    && helm version --template="Version: {{.Version}}" | sed "s/.*v//"
+}
+
+getK9sVersion() {
+  isPackageInstalled "k9s" \
+    && k9s version --short | grep "Version" | sed "s/.*v//"
+}
+
+isPackageInstalled() {
+  local package="${1}"
+  command -v "${package}" >/dev/null
+}
+
+main

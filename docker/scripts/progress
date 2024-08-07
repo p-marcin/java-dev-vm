@@ -1,0 +1,70 @@
+#!/bin/bash
+# PRINT PROGRESS - WHEN YOU HIT THE NEXT 5%
+
+set -o errexit  # ABORT ON NON-ZERO EXIT STATUS
+set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
+
+# CONSTANTS
+readonly ARGS=( "${@}" )
+# COLORS
+readonly RESET="\033[0m"
+readonly BOLD="\033[1m"
+readonly RED="\033[1;31m"
+readonly CYAN="\033[1;36m"
+
+main() {
+  options "${ARGS[@]}"
+  readData
+  validateData
+  calculateProgress
+}
+
+options() {
+  while (( ${#} > 0 )); do
+    case "${1}" in
+      *) help;;
+    esac
+    shift
+  done
+}
+
+help() {
+  cat << EOF
+Usage: ${0}
+
+Print Udemy progress - when you hit the next 5%
+EOF
+  exit 1
+}
+
+readData() {
+  printf "%b>%b %bProvide the number of all lessons:%b " "${CYAN}" "${RESET}" "${BOLD}" "${RESET}"
+  read -r allLessons
+  printf "\n"
+}
+
+validateData() {
+  local isNumber='^[1-9]{1}[0-9]*$'
+  if [[ -z "${allLessons}" || ! ${allLessons} =~ ${isNumber} ]]; then
+    printf "%b!!! ERROR:%b You did not provide the number of all lessons\n" "${RED}" "${RESET}"
+    exit 1
+  fi
+  if [[ ${allLessons} -lt 20 ]]; then
+    printf "%b!!! ERROR:%b The number of all lessons have to be greater or equal 20\n" "${RED}" "${RESET}"
+    exit 1
+  fi
+}
+
+calculateProgress() {
+  printf "%bPROGRESS:%b\n" "${BOLD}" "${RESET}"
+  local progress=5;
+  local -i progressLessons
+  while [[ ${progress} -lt 100 ]] ; do
+    progressLessons=$(((allLessons*progress/100)))
+    printf "%b%d%%%b after %b%d%b lessons\n" "${BOLD}" "${progress}" "${RESET}" "${BOLD}" "${progressLessons}" "${RESET}"
+    progress=$((progress+5))
+  done
+  printf "%b%d%%%b after %b%d%b lessons\n" "${BOLD}" "${progress}" "${RESET}" "${BOLD}" "${allLessons}" "${RESET}"
+}
+
+main

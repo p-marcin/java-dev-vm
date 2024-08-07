@@ -1,0 +1,2 @@
+NAME=Terminal
+COMMAND=kitty
