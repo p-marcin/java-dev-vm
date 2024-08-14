@@ -225,6 +225,12 @@ RUN useradd --uid ${UID} --user-group --create-home --comment "Developer" --shel
     && mkdir --parents "/home/${USER}/.m2/repository" \
     && cp "/opt/sdkman/candidates/maven/current/conf/settings.xml" "/opt/sdkman/candidates/maven/current/conf/toolchains.xml" \
         "/home/${USER}/.m2" \
+    # Gedit configuration \
+    && gsettings set "org.gnome.gedit.preferences.editor" "insert-spaces" "true" \
+    && gsettings set "org.gnome.gedit.preferences.editor" "tabs-size" "4" \
+    && gsettings set "org.gnome.gedit.preferences.editor" "scheme" "oblivion" \
+    && gsettings set "org.gnome.gedit.preferences.ui" "statusbar-visible" "false" \
+    && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
     # Create projects directory
     && mkdir "/home/${USER}/projects" \
     # Create .ubuntu-dev-vm.version file
