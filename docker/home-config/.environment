@@ -3,6 +3,10 @@ export PATH="${HOME}/.krew/bin:/opt/kafka/bin:${PATH}"
 export DISPLAY="${image.display}"
 export XDG_RUNTIME_DIR="/opt/xdg-runtime-dir-${UID}"
 
+# Display Git Branch in terminal - in $PS1 added after \w (current working directory) the following:
+# \[\033[01;33m\]$(__git_ps1 "(%s)")\[\033[00m\]
+export PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;33m\]$(__git_ps1 "(%s)")\[\033[00m\]\$ '
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="/opt/sdkman"
 [[ -s "/opt/sdkman/bin/sdkman-init.sh" ]] && source "/opt/sdkman/bin/sdkman-init.sh"
