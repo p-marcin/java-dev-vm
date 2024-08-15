@@ -144,6 +144,7 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         gnome-keyring \
         jq \
         nano \
+        tree \
         unzip \
         yad \
         zip \
