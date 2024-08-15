@@ -28,6 +28,22 @@ RUN wget -q -O - "https://sw.kovidgoyal.net/kitty/installer.sh" | sh "/dev/stdin
     && mkdir "/kitty" \
     && mv "/tmp/kitty.app"/* "/kitty"
 
+FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
+ARG NODE_VERSION
+ARG PNPM_VERSION
+ARG YARN_VERSION
+ARG GULP_CLI_VERSION
+RUN apt-get -qq update \
+    && apt-get -qq install -y --no-install-recommends xz-utils \
+    && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+    && mkdir "/node" \
+    && tar --extract --no-same-owner --directory "/node" --strip-components=1 --file="node.tar.xz" \
+    && export PATH="/node/bin:${PATH}" \
+    && corepack enable \
+    && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
+    && mv "/root/.cache/node/corepack" "/node" \
+    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION}
+
 FROM alpine:latest AS postman
 ARG POSTMAN_VERSION
 RUN wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
@@ -57,6 +73,7 @@ FROM scratch AS dev-tools
 COPY --from=kafka /kafka /dev-tools/kafka/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=kitty /kitty /dev-tools/kitty/
+COPY --from=node /node /dev-tools/node/
 COPY --from=postman /postman /dev-tools/postman/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
 
@@ -146,6 +163,7 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         nano \
         tree \
         unzip \
+        xz-utils \
         yad \
         zip \
         # Packages from custom repositories
@@ -156,19 +174,12 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         libxcb-xkb1 \
 		# Postman dependency
 		libnss3 \
-        # Node Package Manager
-        npm \
-    # Yarn Package Manager installation
-    && npm install --silent --global yarn \
     # Cleanup
     && apt-get -qq autoremove -y --purge \
     && apt-get -qq clean -y \
-    && npm cache clean --silent --force \
-    && yarn cache clean --silent \
     && rm -rf "/root/.cache" \
         "/root/.dbus" \
         "/root/.launchpadlib" \
-        "/root/.npm" \
         "/root/.wget-hsts" \
         "/tmp"/* \
         "/usr/local/share/.cache"/* \
@@ -235,6 +246,10 @@ RUN useradd --uid ${UID} --user-group --create-home --comment "Developer" --shel
     && gsettings set "org.gnome.gedit.preferences.editor" "scheme" "oblivion" \
     && gsettings set "org.gnome.gedit.preferences.ui" "statusbar-visible" "false" \
     && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
+	# Corepack/Yarn configuration
+    && mkdir --parents "/home/${USER}/.cache/node" \
+    && mv "/opt/node/corepack" "/home/${USER}/.cache/node" \
+	&& printf "enableTelemetry: 0" > /home/${USER}/.yarnrc.yml \
     # Create projects directory
     && mkdir "/home/${USER}/projects" \
     # Create .ubuntu-dev-vm.version file
