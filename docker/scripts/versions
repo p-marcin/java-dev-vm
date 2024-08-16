@@ -40,6 +40,10 @@ main() {
   logVersion "PNPM" "$(getPnpmVersion)"
   logVersion "YARN" "$(getYarnVersion)"
   logVersion "GULP CLI" "$(getGulpCliVersion)"
+  logSection "PYTHON"
+  logVersion "PYTHON" "$(getPythonVersion)"
+  logVersion "PIPX" "$(getPipxVersion)"
+  logVersion "VIRTUALENV" "$(getVirtualEnvVersion)"
   logSection "CLOUD"
   logVersion "DOCKER CLIENT" "$(getDockerClientVersion)"
   logVersion "DOCKER SERVER" "$(getDockerServerVersion)"
@@ -191,6 +195,24 @@ getYarnVersion() {
 getGulpCliVersion() {
   if isPackageInstalled "gulp"; then
     gulp --version | grep "CLI" | sed "s/.*: //"
+  fi
+}
+
+getPythonVersion() {
+  if isPackageInstalled "python3"; then
+    python3 --version | sed "s/.* //"
+  fi
+}
+
+getPipxVersion() {
+  if isPackageInstalled "pipx"; then
+    pipx --version
+  fi
+}
+
+getVirtualEnvVersion() {
+  if isPackageInstalled "virtualenv"; then
+    virtualenv --version | sed "s/virtualenv //;s/ from.*//"
   fi
 }
 
