@@ -1,7 +1,7 @@
 ARG UBUNTU_VERSION=24.04
 FROM alpine:latest AS intellij-idea
-ARG INTELLIJ_IDEA_VERSION
 ARG INTELLIJ_IDEA_EDITION
+ARG INTELLIJ_IDEA_VERSION
 RUN wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
     && mkdir "/intellij-idea" \
     && tar --extract --gzip --no-same-owner --directory "/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz"
@@ -24,9 +24,10 @@ RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/release
     && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION//./}"/* "/keystore-explorer"
 
 FROM alpine:latest AS kitty
-RUN wget -q -O - "https://sw.kovidgoyal.net/kitty/installer.sh" | sh "/dev/stdin" dest="/tmp" launch="n" > /dev/null \
+ARG KITTY_VERSION
+RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
     && mkdir "/kitty" \
-    && mv "/tmp/kitty.app"/* "/kitty"
+    && tar --extract --no-same-owner --directory "/kitty" --file="kitty.txz" "bin" "lib"
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
 ARG NODE_VERSION
