@@ -218,6 +218,8 @@ COPY --from=all-tools /all-tools /tmp/all-tools/
 
 # Move configurations from COPY step
 RUN mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
+    && su -c "firefox -CreateProfile ${USER}" "${USER}" \
+    && mv "/tmp/all-tools/home-config/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
     && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
     && mkdir --parents "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/kitty-config"/* "/home/${USER}/.config/kitty" \
@@ -278,7 +280,7 @@ fi\n" >> "/root/.bashrc" \
     && chown --recursive "${USER}":"${USER}" "/opt"/* \
     && chmod go+w "/opt" \
 	# Python configuration
-	&& su -c "pipx install virtualenv" ${USER} \
+	&& su -c "pipx install virtualenv" "${USER}" \
 	# Enable YAD Panel
 	&& systemctl enable yad-panel.service > /dev/null \
     # Cleanup
