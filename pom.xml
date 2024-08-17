@@ -86,6 +86,7 @@
                     <include>home-config/.environment</include>
                     <include>home-config/.root_environment</include>
                     <include>yad-panel/service/yad-panel.service</include>
+                    <include>yad-panel/config/apps/02-firefox.app</include>
                     <include>Dockerfile</include>
                 </includes>
             </resource>
