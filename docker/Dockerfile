@@ -37,13 +37,15 @@ ARG GULP_CLI_VERSION
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends xz-utils > /dev/null \
     && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && mkdir "/node" \
+    && mkdir "/node" "/bash_completion.d" \
     && tar --extract --no-same-owner --directory "/node" --strip-components=1 --file="node.tar.xz" \
     && export PATH="/node/bin:${PATH}" \
     && corepack enable \
     && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
     && mv "/root/.cache/node/corepack" "/node" \
-    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION}
+    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
+    && npm completion bash > "/bash_completion.d/npm" \
+    && pnpm completion bash > "/bash_completion.d/pnpm"
 
 FROM alpine:latest AS postman
 ARG POSTMAN_VERSION
@@ -75,6 +77,7 @@ COPY --from=kafka /kafka /dev-tools/kafka/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=kitty /kitty /dev-tools/kitty/
 COPY --from=node /node /dev-tools/node/
+COPY --from=node /bash_completion.d /bash_completion.d/
 COPY --from=postman /postman /dev-tools/postman/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
 
@@ -87,14 +90,14 @@ ARG HELM_VERSION
 ARG K9S_VERSION
 RUN apk -q update \
 	&& apk -q add --no-cache git \
-	&& mkdir --parents "/cloud-tools/bash_completion.d" "/cloud-tools/.krew" \
+	&& mkdir --parents "/cloud-tools/.krew" "/bash_completion.d" \
     # Ctop
     && wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
     && chmod +x "/cloud-tools/ctop" \
     # Kubectl
     && wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && chmod +x "/cloud-tools/kubectl" \
-    && /cloud-tools/kubectl completion bash > "/cloud-tools/bash_completion.d/kubectl" \
+    && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl" \
 	# Kubectl Krew
     && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory "/tmp" --file="/tmp/krew.tar.gz" \
@@ -103,21 +106,23 @@ RUN apk -q update \
     # K3d
     && wget -q -O "/cloud-tools/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
     && chmod +x "/cloud-tools/k3d" \
-    && /cloud-tools/k3d completion bash > "/cloud-tools/bash_completion.d/k3d" \
+    && /cloud-tools/k3d completion bash > "/bash_completion.d/k3d" \
     # Helm
     && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory "/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
     && chmod +x "/cloud-tools/helm" \
-    && /cloud-tools/helm completion bash > "/cloud-tools/bash_completion.d/helm" \
+    && /cloud-tools/helm completion bash > "/bash_completion.d/helm" \
     # K9s
     && wget -q -O "k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory "/cloud-tools" --file="k9s.tar.gz" "k9s" \
     && chmod +x "/cloud-tools/k9s" \
-    && /cloud-tools/k9s completion bash > "/cloud-tools/bash_completion.d/k9s"
+    && /cloud-tools/k9s completion bash > "/bash_completion.d/k9s"
 
 FROM scratch AS all-tools
 COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
+COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
+COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
 COPY --chmod=644 docker-config /all-tools/docker-config/
 COPY --chmod=644 home-config /all-tools/home-config/
 COPY --chmod=644 kitty-config /all-tools/kitty-config/
@@ -230,8 +235,7 @@ RUN mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
     && mv "/tmp/all-tools/yad-panel/config"/* "/etc/yad-panel" \
     && chmod 755 "/etc/yad-panel/apps" \
     # Bash completion configuration
-    && mv "/tmp/all-tools/cloud-tools/bash_completion.d"/* "/etc/bash_completion.d" \
-    && rm -rf "/tmp/all-tools/cloud-tools/bash_completion.d" \
+    && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
     # Kubectl Krew configuration
     && mv "/tmp/all-tools/cloud-tools/.krew" "/home/${USER}" \
     && ln --symbolic --force "/home/${USER}/.krew/store/krew/$(ls "/home/${USER}/.krew/store/krew")/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
