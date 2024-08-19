@@ -1,7 +1,7 @@
 :: RESTARTS CONTAINER
 @echo off
 setlocal
-set imageVersion=24.08.2-community
+set imageVersion=24.08.3-community
 set imageName=ubuntu-dev-vm
 
 echo Stopping %imageName%...
@@ -12,16 +12,16 @@ docker container rm %imageName% > nul 2>&1
 
 echo Starting %imageName%:%imageVersion%...
 docker container run --privileged --gpus all -d ^
-	--name %imageName% ^
-	--hostname %imageName% ^
-	-p 80:80 -p 443:443 ^
-	--mount source=projects,target=/home/dev/projects ^
-	--mount source=maven,target=/home/dev/.m2/repository ^
-	--mount source=home,target=/home/dev ^
-	--mount source=docker,target=/var/lib/docker ^
-	--mount type=bind,source=%USERPROFILE%/shared,target=/mnt/shared ^
-	--shm-size 2g ^
-	javowiec/%imageName%:%imageVersion% > nul
+    --name %imageName% ^
+    --hostname %imageName% ^
+    -p 80:80 -p 443:443 ^
+    --mount source=projects,target=/home/dev/projects ^
+    --mount source=maven,target=/home/dev/.m2/repository ^
+    --mount source=home,target=/home/dev ^
+    --mount source=docker,target=/var/lib/docker ^
+    --mount type=bind,source=%USERPROFILE%/shared,target=/mnt/shared ^
+    --shm-size 2g ^
+    javowiec/%imageName%:%imageVersion% > nul
 
 echo Cleaning unused images...
 docker image prune -f > nul
