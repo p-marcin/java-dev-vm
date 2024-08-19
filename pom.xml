@@ -4,7 +4,7 @@
 
     <groupId>pl.javowiec</groupId>
     <artifactId>ubuntu-dev-vm</artifactId>
-    <version>24.08.2</version>
+    <version>24.08.3</version>
     <packaging>pom</packaging>
 
     <name>Ubuntu DEV VM</name>
@@ -128,8 +128,8 @@
                                 <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
                                 <argument>--build-arg=UBUNTU_VERSION=${ubuntu.version}</argument>
                                 <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
-                                <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
+                                <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
                                 <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
                                 <argument>--build-arg=JAVA_VERSION=${java.version}</argument>
