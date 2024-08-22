@@ -11,7 +11,7 @@ echo Removing %imageName%...
 docker container rm %imageName% > nul 2>&1
 
 echo Starting %imageName%:%imageVersion%...
-docker container run --privileged --gpus all -d ^
+docker container run --privileged --gpus all -d --restart unless-stopped ^
     --name %imageName% ^
     --hostname %imageName% ^
     -p 80:80 -p 443:443 ^
