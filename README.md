@@ -173,7 +173,7 @@ is not `overlay2`, it means you're missing `--mount source=docker,target=/var/li
 command. It is already added to [restart.bat](batch-scripts/restart.bat).
 
 Thanks to this, Docker can use `overlay2` as a Storage Driver, otherwise it falls back to `vfs`. Using `vfs` may cause
-issues when creating a k3d kubernetes cluster.
+issues when creating a k3s kubernetes cluster with [k3d](https://k3d.io).
 
 ## :pushpin: Useful Scripts
 
