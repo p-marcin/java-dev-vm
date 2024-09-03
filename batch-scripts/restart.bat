@@ -1,7 +1,7 @@
 :: RESTARTS CONTAINER
 @echo off
 setlocal
-set imageVersion=24.08.3-community
+set imageVersion=24.09.1-community
 set imageName=ubuntu-dev-vm
 
 echo Stopping %imageName%...
