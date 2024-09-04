@@ -1,0 +1,2 @@
+NAME=DBeaver
+COMMAND=dbeaver

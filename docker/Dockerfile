@@ -6,6 +6,12 @@ RUN wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI
     && mkdir "/intellij-idea" \
     && tar --extract --gzip --no-same-owner --directory "/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz"
 
+FROM alpine:latest AS dbeaver
+ARG DBEAVER_VERSION
+RUN wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${DBEAVER_VERSION}/dbeaver-ce-${DBEAVER_VERSION}-linux.gtk.x86_64-nojdk.tar.gz" \
+    && mkdir "/dbeaver" \
+    && tar --extract --gzip --no-same-owner --exclude="*/dbeaver-ce.desktop" --exclude="*/readme" --directory "/dbeaver" --strip-components=1 --file="dbeaver.tar.gz"
+
 FROM alpine:latest AS kafka
 ARG KAFKA_VERSION
 ARG SCALA_VERSION
@@ -73,6 +79,7 @@ RUN apk -q update \
     && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null"
 
 FROM scratch AS dev-tools
+COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
 COPY --from=kafka /kafka /dev-tools/kafka/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=kitty /kitty /dev-tools/kitty/
@@ -261,6 +268,7 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     # Move dev-tools
     && mv "/tmp/all-tools/dev-tools"/* "/opt" \
     && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
+    && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
     && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
     && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
