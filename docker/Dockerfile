@@ -165,14 +165,17 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
     && apt-get -qq clean -y \
     && npm cache clean --silent --force \
     && yarn cache clean --silent \
-    && rm -rf "/root/.launchpadlib" \
-        "/root/.npm"/* \
+    && rm -rf "/root/.cache" \
+        "/root/.dbus" \
+        "/root/.launchpadlib" \
+        "/root/.npm" \
+        "/root/.wget-hsts" \
         "/tmp"/* \
-        "/var/tmp"/* \
-        "/var/cache/apt"/* \
-        "/var/lib/apt/lists"/* \
         "/usr/local/share/.cache"/* \
+        "/var/cache"/* \
+        "/var/lib/apt/lists"/* \
         "/var/log"/* \
+        "/var/tmp"/* \
     && find "/etc/systemd/system" \
         "/lib/systemd/system" \
         -path '*.wants/*' \
@@ -250,10 +253,13 @@ fi\n" >> "/home/${USER}/.bashrc" \
 	# Enable YAD Panel
 	&& systemctl enable yad-panel.service > /dev/null \
     # Cleanup
-    && rm -rf "/tmp"/* \
-		"/var/tmp"/* \
+    && rm -rf "/root/.cache" \
+        "/root/.dbus" \
+        "/tmp"/* \
 		"/usr/local/share/.cache"/* \
+        "/var/cache"/* \
 		"/var/log"/* \
+		"/var/tmp"/* \
     && find "/etc/systemd/system" \
         "/lib/systemd/system" \
         -path '*.wants/*' \
