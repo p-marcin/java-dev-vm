@@ -14,6 +14,8 @@
              https://git.launchpad.net/livecd-rootfs/tree/live-build
              https://github.com/test-kitchen/dokken-images/blob/main/ubuntu-24.04/Dockerfile -->
         <ubuntu.version>24.04</ubuntu.version>
+        <!-- https://github.com/kovidgoyal/kitty/releases -->
+        <kitty.version>0.36.0</kitty.version>
         <!-- https://www.jetbrains.com/idea/download/other.html -->
         <intellij-idea.version>2024.2.0.1</intellij-idea.version>
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
@@ -123,6 +125,7 @@
                                 <argument>build</argument>
                                 <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
                                 <argument>--build-arg=UBUNTU_VERSION=${ubuntu.version}</argument>
+                                <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
