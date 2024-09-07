@@ -84,6 +84,7 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>home-config/.environment</include>
+                    <include>home-config/.root_environment</include>
                     <include>yad-panel/service/yad-panel.service</include>
                     <include>Dockerfile</include>
                 </includes>
