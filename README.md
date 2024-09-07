@@ -12,6 +12,9 @@
   <a href="LICENSE" rel="noreferrer">
       <img src="https://img.shields.io/github/license/P-Marcin/ubuntu-dev-vm?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
+  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
+      <img src="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml/badge.svg?branch=main" alt="GitHub Actions"/>
+  </a>
 </p>
 
 ## :pushpin: Introduction
@@ -90,7 +93,8 @@ make it run with Windows startup:
 
 ![MobaXterm -hideterm property](docs/images/mobaxterm-hideterm.png)
 
-Also, consider changing default settings. You can change the settings to below ones by right-clicking MobaXterm tray icon -> Show terminal -> Settings -> Configuration -> X11:
+Also, consider changing default settings. You can change the settings to below ones by right-clicking MobaXterm tray
+icon -> Show terminal -> Settings -> Configuration -> X11:
 
 ![MobaXterm X11 Settings](docs/images/mobaxterm-x11-settings.png)
 
@@ -135,32 +139,32 @@ This issue has been resolved in Docker Desktop 4.34. Just quit Docker Desktop in
   Deleting data in Docker Desktop (e.g. images, volumes) does not cause the size
   of <a href="https://en.wikipedia.org/wiki/VHD_(file_format)">VHDX (Virtual Hard Disk)</a> to decrease. Once the VHDX grows it will
   remain that size, or grow larger as the amount of data increases.
-  
-  You can check the size of your Docker Desktop VHDX file under path: `%LOCALAPPDATA%\Docker\wsl\disk` (`%LOCALAPPDATA%`
-  is Windows environment variable which resolves to `C:\Users\${username}\AppData\Local`).
-  
-  If you want to recover some of the disk space on Windows that is being consumed by the VHDX, you can shrink the VHDX.
-  
-  See example batch script which automates the shrinking of VHDX
-  via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/diskpart) Windows
-  utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
-  the name/path of your VHDX is different.
-  
-  :warning: **WARNING: Shut down Docker Desktop before running the script!**
-  
-  ![Docker Desktop Quit](docs/images/docker-desktop-quit.png)
-  
-  Before:
-  
-  ![Shrink VHDX - Before](docs/images/shrink-vhdx-before.png)
-  
-  Shrinking:
-  
-  ![Shrink VHDX](docs/images/shrink-vhdx.bat.png)
-  
-  After:
-  
-  ![Shrink VHDX - After](docs/images/shrink-vhdx-after.png)
+
+You can check the size of your Docker Desktop VHDX file under path: `%LOCALAPPDATA%\Docker\wsl\disk` (`%LOCALAPPDATA%`
+is Windows environment variable which resolves to `C:\Users\${username}\AppData\Local`).
+
+If you want to recover some of the disk space on Windows that is being consumed by the VHDX, you can shrink the VHDX.
+
+See example batch script which automates the shrinking of VHDX
+via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/diskpart) Windows
+utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
+the name/path of your VHDX is different.
+
+:warning: **WARNING: Shut down Docker Desktop before running the script!**
+
+![Docker Desktop Quit](docs/images/docker-desktop-quit.png)
+
+Before:
+
+![Shrink VHDX - Before](docs/images/shrink-vhdx-before.png)
+
+Shrinking:
+
+![Shrink VHDX](docs/images/shrink-vhdx.bat.png)
+
+After:
+
+![Shrink VHDX - After](docs/images/shrink-vhdx-after.png)
 </details>
 
 ### Firefox can crash if shared memory size is too low
@@ -222,7 +226,8 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 .\mvnw.cmd clean package -Pultimate
 ```
 
-If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and remove `buildx_buildkit_ubuntu-dev-vm-builder0_state` volume manually.
+If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and
+remove `buildx_buildkit_ubuntu-dev-vm-builder0_state` volume manually.
 
 Older releases are removed from DockerHub. If you want to use older release for whatever reason, you need to build it
 yourself. In the [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab you can find zip with the source
@@ -230,7 +235,8 @@ code.
 
 ## 💖 Support
 
-Hey there! If you enjoy my work and would like to support me, consider buying me a coffee! :slightly_smiling_face: Your contributions help me keep creating, and I truly appreciate every bit of support you offer.
+Hey there! If you enjoy my work and would like to support me, consider buying me a coffee! :slightly_smiling_face: Your
+contributions help me keep creating, and I truly appreciate every bit of support you offer.
 
 <p>
   <a href="https://www.buymeacoffee.com/p.marcin" rel="noreferrer">
@@ -238,10 +244,23 @@ Hey there! If you enjoy my work and would like to support me, consider buying me
   </a>
 </p>
 
-Also, please consider giving this project a ⭐ on GitHub. This kind of support helps promote the project and lets others know that it's worth checking out.
+Also, please consider giving this project a ⭐ on GitHub. This kind of support helps promote the project and lets others
+know that it's worth checking out.
 
 Thank you for being amazing!
 
 ## :pushpin: Copyright & License
 
-Copyright © 2024 Marcin P. - Released under the [MIT license](LICENSE).
+Copyright © 2024 Marcin P
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
