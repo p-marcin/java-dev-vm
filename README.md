@@ -188,9 +188,8 @@ On Ubuntu DEV VM there are some useful scripts which you can use. See [docker/sc
 <details>
   <summary>Click here to see an example</summary>
   <br>
-  If you want to check versions installed (see
-  also <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases">Releases</a> tab), type:
-  
+  <p>If you want to check versions installed (see
+  also <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases">Releases</a> tab), type:</p>
   <img src="docs/images/versions.gif" alt="Versions" width="500px">
 </details>
 
