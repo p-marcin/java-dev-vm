@@ -33,6 +33,13 @@ main() {
   logVersion "MAVEN" "$(getSdkManDependencyVersion "maven")"
   logVersion "SPRING BOOT CLI" "$(getSdkManDependencyVersion "springboot")"
   logVersion "KAFKA" "$(getKafkaVersion)"
+  logSection "JAVASCRIPT"
+  logVersion "NODE" "$(getNodeVersion)"
+  logVersion "COREPACK" "$(getCorepackVersion)"
+  logVersion "NPM" "$(getNpmVersion)"
+  logVersion "PNPM" "$(getPnpmVersion)"
+  logVersion "YARN" "$(getYarnVersion)"
+  logVersion "GULP CLI" "$(getGulpCliVersion)"
   logSection "CLOUD"
   logVersion "DOCKER CLIENT" "$(getDockerClientVersion)"
   logVersion "DOCKER SERVER" "$(getDockerServerVersion)"
@@ -151,6 +158,41 @@ getKafkaVersion() {
     && ls "/opt/kafka/libs" | grep -m 1 "kafka-server" | sed "s/.*-//;s/.jar//"
 }
 
+getNodeVersion() {
+  if isPackageInstalled "node"; then
+    node --version | sed "s/v//"
+  fi
+}
+
+getCorepackVersion() {
+  if isPackageInstalled "corepack"; then
+    corepack --version
+  fi
+}
+
+getNpmVersion() {
+  if isPackageInstalled "npm"; then
+    npm --version
+  fi
+}
+
+getPnpmVersion() {
+  if isPackageInstalled "pnpm"; then
+    pnpm --version
+  fi
+}
+
+getYarnVersion() {
+  if isPackageInstalled "yarn"; then
+    yarn --version
+  fi
+}
+
+getGulpCliVersion() {
+  if isPackageInstalled "gulp"; then
+    gulp --version | grep "CLI" | sed "s/.*: //"
+  fi
+}
 
 getDockerClientVersion() {
   isPackageInstalled "docker" \

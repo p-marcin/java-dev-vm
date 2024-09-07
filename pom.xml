@@ -29,6 +29,16 @@
         <!-- https://kafka.apache.org/downloads -->
         <kafka.version>3.8.0</kafka.version>
         <scala.version>2.13</scala.version>
+        <!-- https://github.com/nodejs/node/releases
+             https://github.com/nodejs/corepack/releases
+             https://github.com/npm/cli/releases -->
+        <node.version>20.16.0</node.version>
+        <!-- https://github.com/pnpm/pnpm/releases -->
+        <pnpm.version>9.7.1</pnpm.version>
+        <!-- https://github.com/yarnpkg/berry/releases -->
+        <yarn.version>4.4.0</yarn.version>
+        <!-- https://github.com/gulpjs/gulp-cli/releases -->
+        <gulp-cli.version>3.0.0</gulp-cli.version>
         <!-- https://github.com/bcicen/ctop/releases -->
         <ctop.version>0.7.7</ctop.version>
         <!-- https://kubernetes.io/releases
@@ -122,6 +132,10 @@
                                 <argument>--build-arg=SPRING_BOOT_VERSION=${spring-boot.version}</argument>
                                 <argument>--build-arg=KAFKA_VERSION=${kafka.version}</argument>
                                 <argument>--build-arg=SCALA_VERSION=${scala.version}</argument>
+                                <argument>--build-arg=NODE_VERSION=${node.version}</argument>
+                                <argument>--build-arg=PNPM_VERSION=${pnpm.version}</argument>
+                                <argument>--build-arg=YARN_VERSION=${yarn.version}</argument>
+                                <argument>--build-arg=GULP_CLI_VERSION=${gulp-cli.version}</argument>
                                 <argument>--build-arg=CTOP_VERSION=${ctop.version}</argument>
                                 <argument>--build-arg=KUBECTL_VERSION=${kubectl.version}</argument>
                                 <argument>--build-arg=KUBECTL_KREW_VERSION=${kubectl-krew.version}</argument>
