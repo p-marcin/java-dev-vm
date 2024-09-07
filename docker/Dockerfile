@@ -1,4 +1,4 @@
-ARG UBUNTU_VERSION
+ARG UBUNTU_VERSION=${ubuntu.version}
 FROM alpine:latest AS kitty
 ARG KITTY_VERSION
 RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
@@ -11,8 +11,7 @@ ARG INTELLIJ_IDEA_VERSION
 RUN wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
     && mkdir "/intellij-idea" \
     && tar --extract --gzip --no-same-owner --directory="/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz" \
-    && [ -d "/intellij-idea/help" ] \
-    && rm -r "/intellij-idea/help"
+    && if [ -d "/intellij-idea/help" ]; then rm -r "/intellij-idea/help"; fi
 
 FROM alpine:latest AS dbeaver
 ARG DBEAVER_VERSION
@@ -291,7 +290,7 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
     # Move sdkman
     && mkdir --parents "/home/${USER}/.sdkman/candidates" \
-    && for dir in "/opt/sdkman"/*; do [ "$(basename "${dir}")" != "candidates" ] && ln -s "${dir}" "/home/${USER}/.sdkman/"; done \
+    && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
     && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
     # Move dev-tools/.krew
     && mv "/tmp/all-tools/dev-tools/.krew" "/home/${USER}" \
