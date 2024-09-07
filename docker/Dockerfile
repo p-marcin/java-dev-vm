@@ -195,14 +195,14 @@ RUN apt-get -qq update -y \
         python3-dev pipx \
         > /dev/null \
     # Custom repositories installation
-    && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
+    && wget -q -O "/etc/apt/trusted.gpg.d/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
+        && printf "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
+           > "/etc/apt/sources.list.d/docker.list" \
     && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
     && wget -q -O "/etc/apt/trusted.gpg.d/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
         && printf "deb [arch=amd64] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
            > "/etc/apt/sources.list.d/git-lfs.list" \
-    && wget -q -O "/etc/apt/trusted.gpg.d/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
-        && printf "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
-           > "/etc/apt/sources.list.d/docker.list" \
+    && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
     # Firefox Apt over Snap prioritization
     && printf "Package: *\n\
 Pin: release o=LP-PPA-mozillateam\n\
@@ -214,9 +214,9 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
     && apt-get -qq update -y \
     && apt-get install -y --no-install-recommends \
         # Packages from custom repositories
-        firefox libpci3 \
-        git git-lfs \
         docker-ce docker-ce-cli containerd.io \
+        git git-lfs \
+        firefox libpci3 \
         > /dev/null \
     # User setup
     && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
