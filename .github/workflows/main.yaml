@@ -2,14 +2,14 @@ name: Build and Push Images
 
 on:
   release:
-    types: [published]
+    types: [ published ]
 
 jobs:
-  build_and_push_images:
+  main:
     name: Build and Push Images
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo
+      - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Oracle JDK
         uses: actions/setup-java@v4
