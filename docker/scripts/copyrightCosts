@@ -1,0 +1,134 @@
+#!/bin/bash
+# LIST ALL MY COMMITS PRESENT ON REMOTE BRANCHES FOR GIVEN DATE RANGE
+
+set -o errexit  # ABORT ON NON-ZERO EXIT STATUS
+set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
+
+# CONSTANTS
+readonly ARGS=( "${@}" )
+readonly MONTH_DAY_FROM="04"
+readonly MONTH_DAY_TO="03"
+readonly EXCLUDE_COMMIT_MESSAGE_PATTERN="\[MERGE TO.*\]"
+readonly AWK_DELIMITER=">:<"
+if git rev-parse &>/dev/null; then
+  readonly AUTHOR="$(git config --global user.name)"
+  readonly GIT_COMMIT_URL="$(git config --local remote.origin.url | sed "s/\.git//")/commit"
+fi
+# COLORS
+readonly RESET="\033[0m"
+readonly BOLD="\033[1m"
+readonly RED="\033[1;31m"
+readonly CYAN="\033[1;36m"
+
+main() {
+  options "${ARGS[@]}"
+  validateCurrentDirectory
+  validateGitAuthor
+  readYearMonth
+  validateYearMonth
+  calculateAfterAndBeforeDates
+  logCommits
+}
+
+options() {
+  while (( ${#} > 0 )); do
+    case "${1}" in
+      -d | --author-date) IS_AUTHOR_DATE="true";;
+      *) help;;
+    esac
+    shift
+  done
+}
+
+help() {
+  cat << EOF
+Usage: ${0} [OPTION]...
+
+List all my commits present on remote branches for given date range
+For example from $(date "+%Y.%m").${MONTH_DAY_FROM} to $(date -d "$(date "+%Y-%m")-${MONTH_DAY_TO}+1 month" "+%Y.%m.%d")
+
+OPTIONS:
+  -d, --author-date   Display author date
+EOF
+  exit 1
+}
+
+validateCurrentDirectory() {
+  if ! git rev-parse &>/dev/null; then
+    printf "%b!!! ERROR:%b Current directory is not a Git repository\n" "${RED}" "${RESET}"
+    exit 1
+  fi
+}
+
+validateGitAuthor() {
+  if [[ -z "$(git config --global user.name)" ]]; then
+    printf "%b!!! ERROR:%b User name is not set in Git\n" "${RED}" "${RESET}"
+    exit 1
+  fi
+}
+
+readYearMonth() {
+  printf "%b>%b %bProvide year and month (YYYY.MM) or press Enter:%b " "${CYAN}" "${RESET}" "${BOLD}" "${RESET}"
+  read -r yearMonth
+  printf "\n"
+}
+
+validateYearMonth() {
+  if [[ -z "${yearMonth}" ]]; then
+    yearMonth="$(date "+%Y-%m")"
+    currentDay="$(date +%d)"
+    if (( "${currentDay}" <= "${MONTH_DAY_TO}" )); then
+      yearMonth=$(date -d "${yearMonth}-${currentDay}-1 month" "+%Y-%m")
+    fi
+  fi
+  yearMonth="${yearMonth//\./-}"
+  if ! [[ "${yearMonth}" =~ ^[0-9]{4}-[0-9]{2}$ ]] || ! date "+%Y-%m-%d" -d "${yearMonth}-${MONTH_DAY_FROM}" &>/dev/null; then
+    printf "%b!!! ERROR:%b Year and month should be in YYYY.MM format\n" "${RED}" "${RESET}"
+    exit 1
+  fi
+}
+
+calculateAfterAndBeforeDates() {
+  afterDate="${yearMonth}-${MONTH_DAY_FROM}"
+  beforeDate="$(date -d "${yearMonth}-${MONTH_DAY_TO}+1 month" "+%Y-%m-%d")"
+}
+
+logCommits() {
+  local authorDate="$([[ "${IS_AUTHOR_DATE}" == "true" ]] && printf "[%%ad] ")"
+  local output=$(git log --author="${AUTHOR}" --remotes --no-merges \
+    --grep="${EXCLUDE_COMMIT_MESSAGE_PATTERN}" --invert-grep --regexp-ignore-case \
+    --date=format:'%Y.%m.%d %H:%M:%S' \
+    --format="%ad %s${AWK_DELIMITER}%s${AWK_DELIMITER}${GIT_COMMIT_URL}/%H${AWK_DELIMITER}${authorDate}${AWK_DELIMITER}%as${AWK_DELIMITER}%an${AWK_DELIMITER}%cn" \
+      | sort --key 3,3 --key 1,1r --key 2,2r --ignore-case \
+      | awk -F "${AWK_DELIMITER}" -v afterDate="${afterDate//-/}" -v beforeDate="${beforeDate//-/}" '
+{
+  # Remove dashes from the date in $5
+  dateStr = $5
+  gsub(/-/, "", dateStr)
+  # Check if the date is within the specified range
+  if ($6 == $7 && dateStr >= afterDate && dateStr <= beforeDate) {
+      print $4$2 "\n" $3 "\n"
+  }
+}')
+  if [[ -n "${output}" ]]; then
+    printf "%s\n\n" "${output}"
+    printf "%bSuccessfully listed all the commits for%b %b%s%b %bfrom%b %b%s%b %bto%b %b%s%b\n" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${AUTHOR}" "${RESET}" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${afterDate//-/.}" "${RESET}" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${beforeDate//-/.}" "${RESET}"
+    printf "%bSelect the ones which are eligible for Copyright Costs%b\n" "${BOLD}" "${RESET}"
+  else
+    printf "%bThere are no commits for%b %b%s%b %bfrom%b %b%s%b %bto%b %b%s%b\n" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${AUTHOR}" "${RESET}" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${afterDate//-/.}" "${RESET}" \
+      "${BOLD}" "${RESET}" \
+      "${CYAN}" "${beforeDate//-/.}" "${RESET}"
+  fi
+}
+
+main

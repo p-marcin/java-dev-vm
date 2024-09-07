@@ -1,0 +1,14 @@
+[Unit]
+Description=Yet Another Dialog panel with App buttons
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Restart=always
+RestartSec=2s
+User=${image.user}
+WorkingDirectory=/home/${image.user}
+ExecStart=/bin/bash -ic yad-panel

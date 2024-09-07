@@ -1,0 +1,8 @@
+export PATH="${HOME}/.krew/bin:/opt/kafka/bin:${PATH}"
+
+export DISPLAY="${image.display}"
+export XDG_RUNTIME_DIR="/opt/xdg-runtime-dir-${UID}"
+
+#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+export SDKMAN_DIR="/opt/sdkman"
+[[ -s "/opt/sdkman/bin/sdkman-init.sh" ]] && source "/opt/sdkman/bin/sdkman-init.sh"
