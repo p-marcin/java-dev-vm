@@ -9,7 +9,7 @@
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases" rel="noreferrer">
       <img src="https://img.shields.io/github/v/release/P-Marcin/ubuntu-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
   </a>
-  <a href="LICENSE.md" rel="noreferrer">
+  <a href="LICENSE" rel="noreferrer">
       <img src="https://img.shields.io/github/license/P-Marcin/ubuntu-dev-vm?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
 </p>
@@ -211,6 +211,20 @@ Older releases are removed from DockerHub. If you want to use older release for 
 yourself. In the [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab you can find zip with the source
 code.
 
+## 💖 Support
+
+Hey there! If you enjoy my work and would like to support me, consider buying me a coffee! :slightly_smiling_face: Your contributions help me keep creating, and I truly appreciate every bit of support you offer.
+
+<p>
+  <a href="https://www.buymeacoffee.com/p.marcin" rel="noreferrer">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy me a Coffee" style="height: 40px !important;width: 160px !important;" >
+  </a>
+</p>
+
+Also, please consider giving this project a ⭐ on GitHub. This kind of support helps promote the project and lets others know that it's worth checking out.
+
+Thank you for being amazing!
+
 ## :pushpin: Copyright & License
 
-Copyright (c) 2024 Marcin P. - Released under the [MIT license](LICENSE.md).
+Copyright © 2024 Marcin P. - Released under the [MIT license](LICENSE).
