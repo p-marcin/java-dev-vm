@@ -205,12 +205,12 @@ RUN apt-get -qq update -y \
         python3-dev pipx \
         > /dev/null \
     # Custom repositories installation
-    && wget -q -O "/etc/apt/trusted.gpg.d/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
-        && printf "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
+    && wget -q -O "/etc/apt/keyrings/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
+        && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
            > "/etc/apt/sources.list.d/docker.list" \
     && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
-    && wget -q -O "/etc/apt/trusted.gpg.d/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
-        && printf "deb [arch=amd64] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
+    && wget -q -O "/etc/apt/keyrings/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
+        && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/git-lfs.asc] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
            > "/etc/apt/sources.list.d/git-lfs.list" \
     && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
     # Firefox Apt over Snap prioritization
