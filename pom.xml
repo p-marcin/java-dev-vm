@@ -24,6 +24,8 @@
         <postman.version>latest</postman.version>
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
         <keystore-explorer.version>5.5.3</keystore-explorer.version>
+        <!-- https://github.com/cli/cli/releases -->
+        <github-cli.version>2.55.0</github-cli.version>
         <!-- https://www.java.com/releases -->
         <!-- Also update in GitHub Actions -->
         <java.version>21.0.4</java.version>
@@ -32,7 +34,7 @@
         <!-- Also update Maven Wrapper: mvn wrapper:wrapper -->
         <maven.version>3.9.9</maven.version>
         <!-- https://github.com/spring-projects/spring-boot/releases -->
-        <spring-boot.version>3.3.3</spring-boot.version>
+        <spring-boot-cli.version>3.3.3</spring-boot-cli.version>
         <!-- https://kafka.apache.org/downloads -->
         <kafka.version>3.8.0</kafka.version>
         <scala.version>2.13</scala.version>
@@ -216,9 +218,10 @@
                                 <argument>--build-arg=DBEAVER_VERSION=${dbeaver.version}</argument>
                                 <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
+                                <argument>--build-arg=GITHUB_CLI_VERSION=${github-cli.version}</argument>
                                 <argument>--build-arg=JAVA_VERSION=${java.version}-${java.distribution}</argument>
                                 <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
-                                <argument>--build-arg=SPRING_BOOT_VERSION=${spring-boot.version}</argument>
+                                <argument>--build-arg=SPRING_BOOT_CLI_VERSION=${spring-boot-cli.version}</argument>
                                 <argument>--build-arg=KAFKA_VERSION=${kafka.version}</argument>
                                 <argument>--build-arg=SCALA_VERSION=${scala.version}</argument>
                                 <argument>--build-arg=NODE_VERSION=${node.version}</argument>

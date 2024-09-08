@@ -35,10 +35,17 @@ RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/release
     && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
     && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION//./}"/* "/keystore-explorer"
 
+FROM alpine:latest AS github-cli
+ARG GITHUB_CLI_VERSION
+RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
+    && mkdir "/github-cli" "/bash_completion.d" \
+    && tar --extract --gzip --no-same-owner --directory="/github-cli" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
+    && /github-cli/gh completion -s bash > "/bash_completion.d/gh"
+
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS sdkman
 ARG JAVA_VERSION
 ARG MAVEN_VERSION
-ARG SPRING_BOOT_VERSION
+ARG SPRING_BOOT_CLI_VERSION
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends ca-certificates unzip zip > /dev/null \
     && export SDKMAN_DIR="/sdkman" \
@@ -52,7 +59,7 @@ RUN apt-get -qq update -y \
     && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
         && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
         && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
-        && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null \
+        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
         && sdk flush > /dev/null" \
     && sed -i 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
 
@@ -108,6 +115,8 @@ COPY --from=kitty /kitty /dev-tools/kitty/
 COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
 COPY --from=postman /postman /dev-tools/postman/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
+COPY --from=github-cli /github-cli /dev-tools/
+COPY --from=github-cli /bash_completion.d /bash_completion.d/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
 COPY --from=kafka /kafka /dev-tools/kafka/
 COPY --from=node /node /dev-tools/node/
@@ -282,6 +291,8 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && systemctl enable yad-panel.service > /dev/null \
     # Move bash_completion.d
     && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
+    # Move dev-tools/gh
+    && mv "/tmp/all-tools/dev-tools/gh" "/usr/local/bin" \
     # Move dev-tools
     && mv "/tmp/all-tools/dev-tools"/* "/opt" \
     && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
