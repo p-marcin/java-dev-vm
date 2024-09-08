@@ -77,12 +77,14 @@
         <image.display>host.docker.internal:0.0</image.display>
 
         <!-- Docker buildx command -->
-        <builder.name>ubuntu-dev-vm-builder</builder.name>
+        <builder.name>${project.artifactId}-builder</builder.name>
         <docker.buildx.build.output>--output=type=docker</docker.buildx.build.output>
         <docker.buildx.build.provenance>--provenance=false</docker.buildx.build.provenance>
         <docker.buildx.build.sbom>--sbom=false</docker.buildx.build.sbom>
+        <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=false</docker.buildx.build.sbom.scan.context>
         <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
-        <image.tag>javowiec/${project.artifactId}:${project.version}</image.tag>
+        <image.namespace>javowiec</image.namespace>
+        <image.tag>${image.namespace}/${project.artifactId}:${project.version}</image.tag>
         <image.target>${project.build.directory}/docker</image.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -134,6 +136,33 @@
                                 </condition>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <echo>${builder.name} used: ${create-builder.skip}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>validate-git-revision</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <exportAntProperties>true</exportAntProperties>
+                            <target>
+                                <exec executable="git" outputproperty="git.revision" failifexecutionfails="false">
+                                    <arg value="rev-parse"/>
+                                    <arg value="HEAD"/>
+                                </exec>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <condition property="git.revision" value="${git.revision}">
+                                    <isset property="git.revision"/>
+                                </condition>
+                                <condition property="git.revision" value="unknown">
+                                    <not>
+                                        <isset property="git.revision"/>
+                                    </not>
+                                </condition>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <echo>Git Revision: ${git.revision}</echo>
                             </target>
                         </configuration>
                     </execution>
@@ -208,9 +237,14 @@
                             <arguments>
                                 <argument>buildx</argument>
                                 <argument>build</argument>
+                                <argument>--platform=linux/amd64</argument>
                                 <argument>${docker.buildx.build.output}</argument>
                                 <argument>${docker.buildx.build.provenance}</argument>
                                 <argument>${docker.buildx.build.sbom}</argument>
+                                <argument>${docker.buildx.build.sbom.scan.context}</argument>
+                                <argument>--build-arg=BUILD_DATE=${maven.build.timestamp}</argument>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <argument>--build-arg=GIT_REVISION=${git.revision}</argument>
                                 <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
                                 <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
@@ -284,7 +318,8 @@
             <properties>
                 <docker.buildx.build.output>--output=type=image,push=true</docker.buildx.build.output>
                 <docker.buildx.build.provenance>--provenance=true</docker.buildx.build.provenance>
-                <docker.buildx.build.sbom>--sbom=true</docker.buildx.build.sbom>
+                <docker.buildx.build.sbom>--attest=type=sbom,generator=docker/scout-sbom-indexer:latest</docker.buildx.build.sbom>
+                <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=true</docker.buildx.build.sbom.scan.context>
             </properties>
         </profile>
         <profile>

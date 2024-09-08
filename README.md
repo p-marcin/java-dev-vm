@@ -12,8 +12,12 @@
   <a href="LICENSE" rel="noreferrer">
       <img src="https://img.shields.io/github/license/P-Marcin/ubuntu-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
+  <br>
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml/badge.svg" alt="GitHub Actions"/>
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/main.yaml?label=Build%20and%20Push%20Images&logo=github&logoColor=white" alt="Build and Push Images"/>
+  </a>
+  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/provenance.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/provenance.yaml?label=Provenance%20Verification&logo=github&logoColor=white" alt="Provenance Verification"/>
   </a>
 </p>
 
