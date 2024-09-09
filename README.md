@@ -131,36 +131,36 @@ This issue has been resolved in Docker Desktop 4.34. Just quit Docker Desktop in
 
 <details>
   <summary>For Docker Desktop older than 4.34 click here</summary>
-<br>
-Deleting data in Docker Desktop (e.g. images, volumes) does not cause the size
-of [VHDX (Virtual Hard Disk)](https://en.wikipedia.org/wiki/VHD_(file_format)) to decrease. Once the VHDX grows it will
-remain that size, or grow larger as the amount of data increases.
-
-You can check the size of your Docker Desktop VHDX file under path: `%LOCALAPPDATA%\Docker\wsl\disk` (`%LOCALAPPDATA%`
-is Windows environment variable which resolves to `C:\Users\${username}\AppData\Local`).
-
-If you want to recover some of the disk space on Windows that is being consumed by the VHDX, you can shrink the VHDX.
-
-See example batch script which automates the shrinking of VHDX
-via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/diskpart) Windows
-utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
-the name/path of your VHDX is different.
-
-:warning: **WARNING: Shut down Docker Desktop before running the script!**
-
-![Docker Desktop Quit](docs/images/docker-desktop-quit.png)
-
-Before:
-
-![Shrink VHDX - Before](docs/images/shrink-vhdx-before.png)
-
-Shrinking:
-
-![Shrink VHDX](docs/images/shrink-vhdx.bat.png)
-
-After:
-
-![Shrink VHDX - After](docs/images/shrink-vhdx-after.png)
+  <br>
+  Deleting data in Docker Desktop (e.g. images, volumes) does not cause the size
+  of <a href="https://en.wikipedia.org/wiki/VHD_(file_format)">VHDX (Virtual Hard Disk)</a> to decrease. Once the VHDX grows it will
+  remain that size, or grow larger as the amount of data increases.
+  
+  You can check the size of your Docker Desktop VHDX file under path: `%LOCALAPPDATA%\Docker\wsl\disk` (`%LOCALAPPDATA%`
+  is Windows environment variable which resolves to `C:\Users\${username}\AppData\Local`).
+  
+  If you want to recover some of the disk space on Windows that is being consumed by the VHDX, you can shrink the VHDX.
+  
+  See example batch script which automates the shrinking of VHDX
+  via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/diskpart) Windows
+  utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
+  the name/path of your VHDX is different.
+  
+  :warning: **WARNING: Shut down Docker Desktop before running the script!**
+  
+  ![Docker Desktop Quit](docs/images/docker-desktop-quit.png)
+  
+  Before:
+  
+  ![Shrink VHDX - Before](docs/images/shrink-vhdx-before.png)
+  
+  Shrinking:
+  
+  ![Shrink VHDX](docs/images/shrink-vhdx.bat.png)
+  
+  After:
+  
+  ![Shrink VHDX - After](docs/images/shrink-vhdx-after.png)
 </details>
 
 ### Firefox can crash if shared memory size is too low
@@ -185,10 +185,14 @@ issues when creating a k3s kubernetes cluster with [k3d](https://k3d.io).
 
 On Ubuntu DEV VM there are some useful scripts which you can use. See [docker/scripts](docker/scripts).
 
-For example: if you want to check versions installed (see
-also [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab), type:
-
-<img src="docs/images/versions.gif" alt="Versions" width="500px">
+<details>
+  <summary>Click here to see an example</summary>
+  <br>
+  If you want to check versions installed (see
+  also <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases">Releases</a> tab), type:
+  
+  <img src="docs/images/versions.gif" alt="Versions" width="500px">
+</details>
 
 ## :pushpin: Useful Aliases
 
