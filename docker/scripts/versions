@@ -51,6 +51,7 @@ main() {
   logVersion "DOCKER SERVER" "$(getDockerServerVersion)"
   logVersion "DOCKER BUILDX" "$(getDockerBuildxVersion)"
   logVersion "DOCKER COMPOSE" "$(getDockerComposeVersion)"
+  logVersion "DOCKER SCOUT" "$(getDockerScoutVersion)"
   logVersion "CTOP" "$(getCtopVersion)"
   logVersion "KUBECTL CLIENT" "$(getKubectlClientVersion)"
   logVersion "KUBECTL SERVER" "$(getKubectlServerVersion)"
@@ -248,6 +249,11 @@ getDockerBuildxVersion() {
 getDockerComposeVersion() {
   isPackageInstalled "docker" \
     && docker compose version --short
+}
+
+getDockerScoutVersion() {
+  isPackageInstalled "docker" \
+    && docker scout version | grep version | sed "s/.* v//;s/ (.*//"
 }
 
 getCtopVersion() {
