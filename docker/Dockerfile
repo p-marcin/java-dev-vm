@@ -224,7 +224,7 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
     && apt-get -qq update -y \
     && apt-get install -y --no-install-recommends \
         # Packages from custom repositories
-        docker-ce docker-ce-cli containerd.io \
+        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
         git git-lfs \
         firefox libpci3 \
         > /dev/null \
