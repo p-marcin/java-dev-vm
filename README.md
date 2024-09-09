@@ -10,10 +10,10 @@
       <img src="https://img.shields.io/github/v/release/P-Marcin/ubuntu-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
   </a>
   <a href="LICENSE" rel="noreferrer">
-      <img src="https://img.shields.io/github/license/apache/.github.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
+      <img src="https://img.shields.io/github/license/P-Marcin/ubuntu-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml/badge.svg?branch=main" alt="GitHub Actions"/>
+      <img src="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml/badge.svg" alt="GitHub Actions"/>
   </a>
 </p>
 
