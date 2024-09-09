@@ -50,10 +50,10 @@ RUN apt-get -qq update -y \
     && sed --in-place "/sdkman_curl_max_time=/c sdkman_curl_max_time=30" "${SDKMAN_DIR}/etc/config" \
     && sed --in-place "/sdkman_selfupdate_feature=/c sdkman_selfupdate_feature=false" "${SDKMAN_DIR}/etc/config" \
     && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
-    && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
-    && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
-    && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null \
-    && sdk flush > /dev/null" \
+        && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
+        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
+        && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null \
+        && sdk flush > /dev/null" \
     && sed -i 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
 
 FROM alpine:latest AS kafka
@@ -264,7 +264,7 @@ COPY --from=all-tools /all-tools /tmp/all-tools/
 # Move docker-config
 RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     # Move home-config
-    && su -c "firefox -CreateProfile ${USER}" "${USER}" \
+    && su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
     && mv "/tmp/all-tools/home-config/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
     && mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
     && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
@@ -309,10 +309,10 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && usermod --append --groups "docker" "${USER}" \
     && docker completion bash > "/etc/bash_completion.d/docker" \
     # Gedit configuration
-    && gsettings set "org.gnome.gedit.preferences.editor" "insert-spaces" "true" \
-    && gsettings set "org.gnome.gedit.preferences.editor" "tabs-size" "4" \
-    && gsettings set "org.gnome.gedit.preferences.editor" "scheme" "oblivion" \
-    && gsettings set "org.gnome.gedit.preferences.ui" "statusbar-visible" "false" \
+    && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
+        && gsettings set \"org.gnome.gedit.preferences.editor\" \"tabs-size\" \"4\" \
+        && gsettings set \"org.gnome.gedit.preferences.editor\" \"scheme\" \"oblivion\" \
+        && gsettings set \"org.gnome.gedit.preferences.ui\" \"statusbar-visible\" \"false\"" \
     && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
     # Git configuration
     && git config --global "init.defaultBranch" "main" \
