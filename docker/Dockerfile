@@ -164,6 +164,7 @@ ARG VIRTUALENV_VERSION
 ARG UID=1001
 ENV USER=${image.user} \
     DISPLAY=${image.display}
+LABEL maintainer="github.com/P-Marcin"
 
 # System setup
 RUN apt-get -qq update -y \
