@@ -1,0 +1,15 @@
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "default-shm-size": "512m",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-file": "1",
+    "max-size": "10m"
+  }
+}
