@@ -125,13 +125,13 @@ In [restart.bat](batch-scripts/restart.bat) I defined **5** volumes:
 
 ## :pushpin: Known Issues
 
-### VHDX disk grows over time - how to shrink it?
+### VHDX disk grows over time
 
-> [!WARNING]
-> This issue should be resolved in Docker Desktop 4.34.
-> 
-> According to the release notes: "_Starting from version 4.34 and later, Docker Desktop automatically manages the size of the managed VHDX and returns unused space to the operating system._"
+This issue has been resolved in Docker Desktop 4.34. Just quit Docker Desktop in order to reclaim disk space.
 
+<details>
+  <summary>For Docker Desktop older than 4.34 click here</summary>
+<br>
 Deleting data in Docker Desktop (e.g. images, volumes) does not cause the size
 of [VHDX (Virtual Hard Disk)](https://en.wikipedia.org/wiki/VHD_(file_format)) to decrease. Once the VHDX grows it will
 remain that size, or grow larger as the amount of data increases.
@@ -146,7 +146,7 @@ via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/w
 utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
 the name/path of your VHDX is different.
 
-**WARNING: Shut down Docker Desktop before running this script**:
+:warning: **WARNING: Shut down Docker Desktop before running the script!**
 
 ![Docker Desktop Quit](docs/images/docker-desktop-quit.png)
 
@@ -161,6 +161,7 @@ Shrinking:
 After:
 
 ![Shrink VHDX - After](docs/images/shrink-vhdx-after.png)
+</details>
 
 ### Firefox can crash if shared memory size is too low
 
