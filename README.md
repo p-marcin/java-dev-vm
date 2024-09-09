@@ -171,6 +171,8 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 .\mvnw.cmd clean package -Pultimate
 ```
 
+Older releases are removed from DockerHub. If you want to use older release for whatever reason, you need to build it yourself. In the [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab you can find zip with the source code.
+
 ## :pushpin: Copyright & License
 
 Copyright (c) 2024 Marcin P. - Released under the [MIT license](LICENSE).
