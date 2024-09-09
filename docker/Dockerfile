@@ -41,6 +41,7 @@ ARG GITHUB_CLI_VERSION
 RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
     && mkdir "/github-cli" "/bash_completion.d" \
     && tar --extract --gzip --no-same-owner --directory="/github-cli" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
+    && chmod +x "/github-cli/gh" \
     && /github-cli/gh completion -s bash > "/bash_completion.d/gh"
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS sdkman
@@ -126,6 +127,7 @@ COPY --from=krew /.krew /dev-tools/.krew/
 COPY --from=krew /krew /dev-tools/krew/
 
 FROM alpine:latest AS cloud-tools
+ARG DOCKER_SCOUT_VERSION
 ARG CTOP_VERSION
 ARG KUBECTL_VERSION
 ARG K3D_VERSION
@@ -133,7 +135,11 @@ ARG HELM_VERSION
 ARG K9S_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
-    && mkdir "/cloud-tools" "/bash_completion.d" \
+    && mkdir --parents "/cloud-tools" "/docker/cli-plugins" "/bash_completion.d" \
+    # Docker Scout
+    && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
+    && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
+    && chmod +x "/docker/cli-plugins/docker-scout" \
     # Ctop
     && wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
     && chmod +x "/cloud-tools/ctop" \
@@ -165,6 +171,7 @@ COPY --chmod=644 yad-panel/config /all-tools/yad-panel/config/
 COPY --chmod=644 yad-panel/service /all-tools/yad-panel/service/
 COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
 COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
+COPY --from=cloud-tools /docker /all-tools/cloud-tools/docker/
 COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
 COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 
@@ -326,6 +333,7 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
     && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
     # Move cloud-tools
+    && mv "/tmp/all-tools/cloud-tools/docker" "/usr/local/lib" \
     && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
     # Corepack/Yarn configuration
     && mkdir --parents "/home/${USER}/.cache/node" \
