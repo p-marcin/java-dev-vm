@@ -2,7 +2,7 @@
 @echo off
 setlocal
 set imageVersion=${project.version}-community
-set imageName=ubuntu-dev-vm
+set imageName=${project.artifactId}
 
 echo Stopping %imageName%...
 docker container stop %imageName% > nul 2>&1
@@ -21,7 +21,7 @@ docker container run --privileged --gpus all -d --restart unless-stopped ^
     --mount source=docker,target=/var/lib/docker ^
     --mount type=bind,source=%USERPROFILE%/shared,target=/mnt/shared ^
     --shm-size 2g ^
-    javowiec/%imageName%:%imageVersion% > nul
+    ${image.namespace}/%imageName%:%imageVersion% > nul
 
 echo Cleaning dangling images...
 docker image prune -f > nul

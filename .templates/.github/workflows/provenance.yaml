@@ -1,0 +1,25 @@
+name: Provenance Verification
+
+on:
+  workflow_run:
+    workflows: [ Build and Push Images ]
+    types:
+      - completed
+  schedule:
+    - cron: "30 3,15 * * *"
+
+jobs:
+  main:
+    name: Provenance Verification
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Verify Community Image
+        run: |
+          gh attestation verify oci://docker.io/${image.tag}-community --owner "${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify Ultimate Image
+        run: |
+          gh attestation verify oci://docker.io/${image.tag}-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
