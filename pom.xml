@@ -25,8 +25,10 @@
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
         <keystore-explorer.version>5.5.3</keystore-explorer.version>
         <!-- https://www.java.com/releases -->
+        <!-- Also update in GitHub Actions -->
         <java.version>21.0.4-oracle</java.version>
         <!-- https://maven.apache.org/docs/history.html -->
+        <!-- Also update Maven Wrapper: mvn wrapper:wrapper -->
         <maven.version>3.9.9</maven.version>
         <!-- https://github.com/spring-projects/spring-boot/releases -->
         <spring-boot.version>3.3.3</spring-boot.version>
@@ -60,16 +62,24 @@
         <!-- https://github.com/derailed/k9s/releases -->
         <k9s.version>0.32.5</k9s.version>
 
+        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
+        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
         <!-- https://github.com/apache/maven-resources-plugin/releases -->
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
         <!-- https://github.com/mojohaus/exec-maven-plugin/releases -->
         <exec-maven-plugin.version>3.4.1</exec-maven-plugin.version>
 
-        <dockerhub.user>javowiec</dockerhub.user>
-
+        <!-- Resource filtering -->
         <image.user>dev</image.user>
         <image.display>host.docker.internal:0.0</image.display>
-        <image.tag>${dockerhub.user}/${project.artifactId}:${project.version}</image.tag>
+
+        <!-- Docker buildx command -->
+        <builder.name>ubuntu-dev-vm-builder</builder.name>
+        <docker.buildx.build.output>--output=type=docker</docker.buildx.build.output>
+        <docker.buildx.build.provenance>--provenance=false</docker.buildx.build.provenance>
+        <docker.buildx.build.sbom>--sbom=false</docker.buildx.build.sbom>
+        <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
+        <image.tag>javowiec/${project.artifactId}:${project.version}</image.tag>
         <image.target>${project.build.directory}/docker</image.target>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -98,6 +108,36 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven-antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>validate-builder</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <exportAntProperties>true</exportAntProperties>
+                            <target>
+                                <exec executable="docker" resultproperty="builder.used">
+                                    <arg value="buildx"/>
+                                    <arg value="use"/>
+                                    <arg value="${builder.name}"/>
+                                </exec>
+                                <condition property="create-builder.skip" else="false">
+                                    <!--suppress UnresolvedMavenProperty -->
+                                    <equals arg1="${builder.used}" arg2="0"/>
+                                </condition>
+                                <!--suppress UnresolvedMavenProperty -->
+                                <echo>${builder.name} used: ${create-builder.skip}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>${maven-resources-plugin.version}</version>
                 <executions>
@@ -119,6 +159,26 @@
                 <version>${exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
+                        <id>create-builder</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <skip>${create-builder.skip}</skip>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>buildx</argument>
+                                <argument>create</argument>
+                                <argument>--name=${builder.name}</argument>
+                                <argument>--driver=docker-container</argument>
+                                <argument>--bootstrap</argument>
+                                <argument>--use</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>build-image</id>
                         <phase>package</phase>
                         <goals>
@@ -129,8 +189,10 @@
                             <arguments>
                                 <argument>buildx</argument>
                                 <argument>build</argument>
+                                <argument>${docker.buildx.build.output}</argument>
+                                <argument>${docker.buildx.build.provenance}</argument>
+                                <argument>${docker.buildx.build.sbom}</argument>
                                 <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
-                                <argument>--build-arg=UBUNTU_VERSION=${ubuntu.version}</argument>
                                 <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
@@ -159,7 +221,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>prune-unused-build-cache</id>
+                        <id>remove-builder</id>
                         <phase>package</phase>
                         <goals>
                             <goal>exec</goal>
@@ -168,8 +230,9 @@
                             <executable>docker</executable>
                             <arguments>
                                 <argument>buildx</argument>
-                                <argument>prune</argument>
-                                <argument>--force</argument>
+                                <argument>rm</argument>
+                                <argument>${docker.buildx.rm.keep.state}</argument>
+                                <argument>${builder.name}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -194,6 +257,20 @@
             <properties>
                 <intellij-idea.edition>U</intellij-idea.edition>
                 <image.tag.edition>ultimate</image.tag.edition>
+            </properties>
+        </profile>
+        <profile>
+            <id>github-actions</id>
+            <properties>
+                <docker.buildx.build.output>--output=type=image,push=true</docker.buildx.build.output>
+                <docker.buildx.build.provenance>--provenance=true</docker.buildx.build.provenance>
+                <docker.buildx.build.sbom>--sbom=true</docker.buildx.build.sbom>
+            </properties>
+        </profile>
+        <profile>
+            <id>prune-builder</id>
+            <properties>
+                <docker.buildx.rm.keep.state>--keep-state=false</docker.buildx.rm.keep.state>
             </properties>
         </profile>
     </profiles>
