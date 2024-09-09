@@ -133,8 +133,33 @@ ENV USER=${image.user} \
 
 # System setup
 RUN apt-get -qq update -y \
-    # Custom repositories enablement
-    && apt-get install -y --no-install-recommends software-properties-common > /dev/null \
+    && apt-get install -y --no-install-recommends \
+        # Utilities
+        bash-completion \
+        ca-certificates \
+        dbus-x11 \
+        gedit \
+        gnome-keyring \
+        jq \
+        nano \
+        tree \
+        unzip \
+        xz-utils \
+        yad \
+        zip \
+        # Custom repositories
+        software-properties-common \
+        # Python
+        pipx \
+		# OpenGL dependency
+		libgl1 libegl1 \
+		# IntelliJ IDEA dependency
+		libxtst6 \
+        # Kitty Terminal dependency
+        libxcb-xkb1 \
+        # Postman dependency
+        libnss3 \
+        > /dev/null \
     # Custom repositories installation
     && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
     && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
@@ -153,30 +178,11 @@ Pin: version 1:1snap*\n\
 Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
     # Package installation
     && apt-get -qq update -y \
-    && apt-get install -y \
-        # Utilities
-        bash-completion \
-        ca-certificates \
-        dbus-x11 \
-        gedit \
-        gnome-keyring \
-        jq \
-        nano \
-        tree \
-        unzip \
-        xz-utils \
-        yad \
-        zip \
+    && apt-get install -y --no-install-recommends \
         # Packages from custom repositories
         firefox libpci3 \
         git git-lfs \
         docker-ce docker-ce-cli containerd.io \
-        # Kitty Terminal dependency
-        libxcb-xkb1 \
-		# Postman dependency
-		libnss3 \
-        # Python
-        pipx \
         > /dev/null \
     # User setup
 	&& useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
@@ -211,7 +217,8 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
 COPY --from=all-tools /all-tools /tmp/all-tools/
 
 # Move configurations from COPY step
-RUN bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
+RUN mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
+    && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
     && mkdir --parents "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/kitty-config"/* "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
@@ -262,8 +269,9 @@ RUN bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USE
     && printf "\nif [ -f ~/.environment ]; then\n\
     . ~/.environment\n\
 fi\n" >> "/home/${USER}/.bashrc" \
-    # XDG_RUNTIME_DIR setup
-    && mkdir "/opt/xdg-runtime-dir-${UID}" \
+    && printf "\nif [ -f ~/.environment ]; then\n\
+    . ~/.environment\n\
+fi\n" >> "/root/.bashrc" \
     # Make sure everything in /home/${USER} belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
     # Make sure everything in /opt belongs to ${USER}
