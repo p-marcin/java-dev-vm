@@ -33,8 +33,8 @@ ARG NODE_VERSION
 ARG PNPM_VERSION
 ARG YARN_VERSION
 ARG GULP_CLI_VERSION
-RUN apt-get -qq update \
-    && apt-get -qq install -y --no-install-recommends xz-utils \
+RUN apt-get -qq update -y \
+    && apt-get install -y --no-install-recommends xz-utils > /dev/null \
     && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
     && mkdir "/node" \
     && tar --extract --no-same-owner --directory "/node" --strip-components=1 --file="node.tar.xz" \
@@ -133,15 +133,15 @@ ENV USER=${image.user} \
 # System setup
 RUN apt-get -qq update -y \
     # Custom repositories enablement
-    && apt-get -qq install -y --no-install-recommends software-properties-common \
+    && apt-get install -y --no-install-recommends software-properties-common > /dev/null \
     # Custom repositories installation
     && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
     && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
     && wget -q -O "/etc/apt/trusted.gpg.d/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
-        && printf "deb [arch=amd64] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet 's/VERSION_CODENAME=//p' "/etc/os-release") main\n" \
+        && printf "deb [arch=amd64] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
            > "/etc/apt/sources.list.d/git-lfs.list" \
     && wget -q -O "/etc/apt/trusted.gpg.d/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
-        && printf "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(sed --quiet 's/VERSION_CODENAME=//p' "/etc/os-release") stable\n" \
+        && printf "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
            > "/etc/apt/sources.list.d/docker.list" \
     # Firefox Apt over Snap prioritization
     && printf "Package: *\n\
@@ -152,7 +152,7 @@ Pin: version 1:1snap*\n\
 Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
     # Package installation
     && apt-get -qq update -y \
-    && apt-get -qq install -y \
+    && apt-get install -y \
         # Utilities
         bash-completion \
         ca-certificates \
@@ -174,6 +174,14 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         libxcb-xkb1 \
 		# Postman dependency
 		libnss3 \
+        # Python
+        pipx \
+        > /dev/null \
+    # User setup
+	&& useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
+    && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
+    && usermod --home "/nonexistent" ubuntu \
+    && rm -rf "/home/ubuntu" \
     # Cleanup
     && apt-get -qq autoremove -y --purge \
     && apt-get -qq clean -y \
@@ -189,25 +197,20 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         "/var/tmp"/* \
     && find "/etc/systemd/system" \
         "/lib/systemd/system" \
-        -path '*.wants/*' \
-        \( -name '*getty*' \
-        -or -name '*apt-daily*' \
-        -or -name '*systemd-timesyncd*' \
-        -or -name '*systemd-logind*' \
-        -or -name '*systemd-vconsole-setup*' \
-        -or -name '*systemd-readahead*' \
-        -or -name '*udev*' \) \
-        -exec rm {} \;
+        -path "*.wants/*" \
+        \( -name "*getty*" \
+        -or -name "*apt-daily*" \
+        -or -name "*systemd-timesyncd*" \
+        -or -name "*systemd-logind*" \
+        -or -name "*systemd-vconsole-setup*" \
+        -or -name "*systemd-readahead*" \
+        -or -name "*udev*" \) \
+        -exec rm {} +
 
 COPY --from=all-tools /all-tools /tmp/all-tools/
 
-# User setup
-RUN useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
-    && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
-    && usermod --home "/nonexistent" ubuntu \
-    && rm -rf "/home/ubuntu" \
-    # Move configurations from COPY step
-    && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
+# Move configurations from COPY step
+RUN bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
     && mkdir --parents "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/kitty-config"/* "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
@@ -265,10 +268,16 @@ fi\n" >> "/home/${USER}/.bashrc" \
     # Make sure everything in /opt belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/opt"/* \
     && chmod go+w "/opt" \
+	# Python configuration
+	&& su -c "pipx install virtualenv" ${USER} \
 	# Enable YAD Panel
 	&& systemctl enable yad-panel.service > /dev/null \
     # Cleanup
-    && rm -rf "/root/.cache" \
+    && rm -rf "/home/${USER}/.cache/pip" \
+		"/home/${USER}/.cache/pipx" \
+		"/home/${USER}/.local/share/man" \
+		"/home/${USER}/.local/state" \
+		"/root/.cache" \
         "/root/.dbus" \
         "/tmp"/* \
 		"/usr/local/share/.cache"/* \
@@ -277,15 +286,15 @@ fi\n" >> "/home/${USER}/.bashrc" \
 		"/var/tmp"/* \
     && find "/etc/systemd/system" \
         "/lib/systemd/system" \
-        -path '*.wants/*' \
-        \( -name '*getty*' \
-        -or -name '*apt-daily*' \
-        -or -name '*systemd-timesyncd*' \
-        -or -name '*systemd-logind*' \
-        -or -name '*systemd-vconsole-setup*' \
-        -or -name '*systemd-readahead*' \
-        -or -name '*udev*' \) \
-        -exec rm {} \;
+        -path "*.wants/*" \
+        \( -name "*getty*" \
+        -or -name "*apt-daily*" \
+        -or -name "*systemd-timesyncd*" \
+        -or -name "*systemd-logind*" \
+        -or -name "*systemd-vconsole-setup*" \
+        -or -name "*systemd-readahead*" \
+        -or -name "*udev*" \) \
+        -exec rm {} +
 
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
 
