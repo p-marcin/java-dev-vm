@@ -1,4 +1,4 @@
-export PATH="${HOME}/.krew/bin:/opt/kafka/bin:${PATH}"
+export PATH="${HOME}/.krew/bin:/opt/kafka/bin:/opt/node/bin:${PATH}"
 
 export DISPLAY="${image.display}"
 export XDG_RUNTIME_DIR="/opt/xdg-runtime-dir-${UID}"
