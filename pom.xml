@@ -26,7 +26,8 @@
         <keystore-explorer.version>5.5.3</keystore-explorer.version>
         <!-- https://www.java.com/releases -->
         <!-- Also update in GitHub Actions -->
-        <java.version>21.0.4-oracle</java.version>
+        <java.version>21.0.4</java.version>
+        <java.distribution>oracle</java.distribution>
         <!-- https://maven.apache.org/docs/history.html -->
         <!-- Also update Maven Wrapper: mvn wrapper:wrapper -->
         <maven.version>3.9.9</maven.version>
@@ -142,6 +143,22 @@
                 <version>${maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
+                        <id>process-templates</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/.templates</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                            <outputDirectory>${project.basedir}</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>process-image</id>
                         <phase>process-resources</phase>
                         <goals>
@@ -199,7 +216,7 @@
                                 <argument>--build-arg=DBEAVER_VERSION=${dbeaver.version}</argument>
                                 <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
-                                <argument>--build-arg=JAVA_VERSION=${java.version}</argument>
+                                <argument>--build-arg=JAVA_VERSION=${java.version}-${java.distribution}</argument>
                                 <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
                                 <argument>--build-arg=SPRING_BOOT_VERSION=${spring-boot.version}</argument>
                                 <argument>--build-arg=KAFKA_VERSION=${kafka.version}</argument>
