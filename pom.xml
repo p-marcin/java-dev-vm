@@ -45,7 +45,7 @@
         <ctop.version>0.7.7</ctop.version>
         <!-- https://kubernetes.io/releases
              https://github.com/kubernetes/kubernetes/releases -->
-        <kubectl.version>1.30.3</kubectl.version>
+        <kubectl.version>1.30.4</kubectl.version>
         <!-- https://github.com/kubernetes-sigs/krew/releases -->
         <kubectl-krew.version>0.4.4</kubectl-krew.version>
         <!-- https://github.com/k3d-io/k3d/releases
