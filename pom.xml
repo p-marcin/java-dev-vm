@@ -18,6 +18,8 @@
         <kitty.version>0.36.1</kitty.version>
         <!-- https://www.jetbrains.com/idea/download/other.html -->
         <intellij-idea.version>2024.2.1</intellij-idea.version>
+        <!-- https://github.com/dbeaver/dbeaver/releases -->
+        <dbeaver.version>24.2.0</dbeaver.version>
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
         <keystore-explorer.version>5.5.3</keystore-explorer.version>
         <!-- https://www.postman.com/release-notes/postman-app -->
@@ -130,6 +132,7 @@
                                 <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
+                                <argument>--build-arg=DBEAVER_VERSION=${dbeaver.version}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
                                 <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
                                 <argument>--build-arg=JAVA_VERSION=${java.version}</argument>
