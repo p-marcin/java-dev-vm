@@ -45,9 +45,6 @@ RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download
     && /github-cli/gh completion -s bash > "/bash_completion.d/gh"
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS sdkman
-ARG JAVA_VERSION
-ARG MAVEN_VERSION
-ARG SPRING_BOOT_CLI_VERSION
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends ca-certificates unzip zip > /dev/null \
     && export SDKMAN_DIR="/sdkman" \
@@ -58,12 +55,22 @@ RUN apt-get -qq update -y \
     && sed --in-place "/sdkman_curl_connect_timeout=/c sdkman_curl_connect_timeout=15" "${SDKMAN_DIR}/etc/config" \
     && sed --in-place "/sdkman_curl_max_time=/c sdkman_curl_max_time=30" "${SDKMAN_DIR}/etc/config" \
     && sed --in-place "/sdkman_selfupdate_feature=/c sdkman_selfupdate_feature=false" "${SDKMAN_DIR}/etc/config" \
-    && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
+    && sed --in-place 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
+ARG JAVA_VERSION
+RUN export SDKMAN_DIR="/sdkman" && \
+    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
         && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
+        && sdk flush > /dev/null"
+ARG MAVEN_VERSION
+RUN export SDKMAN_DIR="/sdkman" && \
+    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
         && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
+        && sdk flush > /dev/null"
+ARG SPRING_BOOT_CLI_VERSION
+RUN export SDKMAN_DIR="/sdkman" && \
+    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
         && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
-        && sdk flush > /dev/null" \
-    && sed -i 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
+        && sdk flush > /dev/null"
 
 FROM alpine:latest AS kafka
 ARG KAFKA_VERSION
@@ -79,9 +86,6 @@ RUN wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSIO
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
 ARG NODE_VERSION
-ARG PNPM_VERSION
-ARG YARN_VERSION
-ARG GULP_CLI_VERSION
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends xz-utils > /dev/null \
     && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
@@ -91,12 +95,17 @@ RUN apt-get -qq update -y \
         "node-v${NODE_VERSION}-linux-x64/include" \
         "node-v${NODE_VERSION}-linux-x64/lib" \
     && export PATH="/node/bin:${PATH}" \
+    && npm completion bash > "/bash_completion.d/npm"
+ARG PNPM_VERSION
+ARG YARN_VERSION
+RUN export PATH="/node/bin:${PATH}" \
     && corepack enable \
     && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
     && mv "/root/.cache/node/corepack" "/node/.cache" \
+    && pnpm completion bash > "/bash_completion.d/pnpm"
+ARG GULP_CLI_VERSION
+RUN export PATH="/node/bin:${PATH}" \
     && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
-    && npm completion bash > "/bash_completion.d/npm" \
-    && pnpm completion bash > "/bash_completion.d/pnpm" \
     && rm -r "/node/share"
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS krew
@@ -128,57 +137,49 @@ COPY --from=krew /krew /dev-tools/krew/
 
 FROM alpine:latest AS cloud-tools
 ARG DOCKER_SCOUT_VERSION
-ARG CTOP_VERSION
-ARG KUBECTL_VERSION
-ARG K3D_VERSION
-ARG HELM_VERSION
-ARG K9S_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
     && mkdir --parents "/cloud-tools" "/docker/cli-plugins" "/bash_completion.d" \
-    # Docker Scout
     && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
-    && chmod +x "/docker/cli-plugins/docker-scout" \
-    # Ctop
-    && wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
-    && chmod +x "/cloud-tools/ctop" \
-    # Kubectl
-    && wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+    && chmod +x "/docker/cli-plugins/docker-scout"
+ARG CTOP_VERSION
+RUN wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
+    && chmod +x "/cloud-tools/ctop"
+ARG KUBECTL_VERSION
+RUN wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && chmod +x "/cloud-tools/kubectl" \
-    && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl" \
-    # K3d
-    && wget -q -O "/cloud-tools/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
+    && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl"
+ARG K3D_VERSION
+RUN wget -q -O "/cloud-tools/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
     && chmod +x "/cloud-tools/k3d" \
-    && /cloud-tools/k3d completion bash > "/bash_completion.d/k3d" \
-    # Helm
-    && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
+    && /cloud-tools/k3d completion bash > "/bash_completion.d/k3d"
+ARG HELM_VERSION
+RUN wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
     && chmod +x "/cloud-tools/helm" \
-    && /cloud-tools/helm completion bash > "/bash_completion.d/helm" \
-    # K9s
-    && wget -q -O "k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" \
+    && /cloud-tools/helm completion bash > "/bash_completion.d/helm"
+ARG K9S_VERSION
+RUN wget -q -O "k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --file="k9s.tar.gz" "k9s" \
     && chmod +x "/cloud-tools/k9s" \
     && /cloud-tools/k9s completion bash > "/bash_completion.d/k9s"
 
 FROM scratch AS all-tools
+COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
+COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
+COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
+COPY --from=cloud-tools /docker /all-tools/cloud-tools/docker/
+COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
 COPY --chmod=644 docker-config /all-tools/docker-config/
 COPY --chmod=644 home-config /all-tools/home-config/
 COPY --chmod=644 kitty-config /all-tools/kitty-config/
 COPY scripts yad-panel/yad-panel /all-tools/scripts/
 COPY --chmod=644 yad-panel/config /all-tools/yad-panel/config/
 COPY --chmod=644 yad-panel/service /all-tools/yad-panel/service/
-COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
-COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
-COPY --from=cloud-tools /docker /all-tools/cloud-tools/docker/
-COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
-COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main
 ARG UBUNTU_DEV_VM_VERSION
-ARG VIRTUALENV_VERSION
-ARG BUILD_DATE
 ARG GIT_REVISION
 ARG UID=1001
 ENV USER=${image.user} \
@@ -193,7 +194,6 @@ LABEL maintainer="https://github.com/P-Marcin" \
       org.opencontainers.image.source="https://github.com/P-Marcin/${project.artifactId}" \
       org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${project.artifactId}" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.revision="${GIT_REVISION}"
 
 # System setup
@@ -292,6 +292,7 @@ fi\n" >> "/root/.bashrc" \
 
 COPY --from=all-tools /all-tools /tmp/all-tools/
 
+ARG VIRTUALENV_VERSION
 # Move docker-config
 RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     # Move home-config
@@ -392,3 +393,6 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
 
 WORKDIR /home/${USER}
+
+ARG BUILD_TIMESTAMP
+LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}"
