@@ -1,4 +1,4 @@
-name: Provenance Verification
+name: Attestation Verification
 
 on:
   workflow_run:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   main:
-    name: Provenance Verification
+    name: Attestation Verification
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Verify Community Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.4-community --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/${image.tag}-community --owner "${GITHUB_REPOSITORY_OWNER}"
       - name: Verify Ultimate Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.4-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/${image.tag}-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
