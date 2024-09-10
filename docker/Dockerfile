@@ -36,6 +36,14 @@ RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/release
     && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
     && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION//./}"/* "/keystore-explorer"
 
+FROM alpine:latest AS git-filter-repo
+ARG GIT_FILTER_REPO_VERSION
+RUN wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
+    && mkdir "/git-filter-repo" \
+    && tar --extract --no-same-owner --directory="/git-filter-repo" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${GIT_FILTER_REPO_VERSION}/git-filter-repo" \
+    && chmod +x "/git-filter-repo/git-filter-repo" \
+    && printf "${GIT_FILTER_REPO_VERSION}\n" > "/git-filter-repo/git-filter-repo.version"
+
 FROM alpine:latest AS github-cli
 ARG GITHUB_CLI_VERSION
 RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
@@ -126,6 +134,7 @@ COPY --from=kitty /kitty /dev-tools/kitty/
 COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
 COPY --from=postman /postman /dev-tools/postman/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
+COPY --from=git-filter-repo /git-filter-repo /dev-tools/
 COPY --from=github-cli /github-cli /dev-tools/
 COPY --from=github-cli /bash_completion.d /bash_completion.d/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
@@ -264,7 +273,8 @@ fi\n" >> "/home/${USER}/.bashrc" \
     . ~/.environment\n\
 fi\n" >> "/root/.bashrc" \
     # Create .${project.artifactId}.version file
-    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/.${project.artifactId}.version" \
+    && mkdir "/etc/versions" \
+    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${project.artifactId}.version" \
     # Cleanup
     && apt-get -qq autoremove -y --purge \
     && apt-get -qq clean -y \
@@ -313,7 +323,9 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && systemctl enable yad-panel.service > /dev/null \
     # Move bash_completion.d
     && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
-    # Move dev-tools/gh
+    # Move dev-tools/git-filter-repo and dev-tools/gh
+    && mv "/tmp/all-tools/dev-tools/git-filter-repo" "/usr/local/bin" \
+    && mv "/tmp/all-tools/dev-tools/git-filter-repo.version" "/etc/versions" \
     && mv "/tmp/all-tools/dev-tools/gh" "/usr/local/bin" \
     # Move dev-tools
     && mv "/tmp/all-tools/dev-tools"/* "/opt" \

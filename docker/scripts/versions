@@ -27,6 +27,7 @@ main() {
   logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
   logSection "VERSION CONTROL"
   logVersion "GIT" "$(getGitVersion)"
+  logVersion "GIT FILTER-REPO" "$(getGitFilterRepoVersion)"
   logVersion "GIT LFS" "$(getGitLfsVersion)"
   logVersion "GITHUB CLI" "$(getGitHubCliVersion)"
   logSection "JAVA"
@@ -104,7 +105,8 @@ logVersion() {
 }
 
 getUbuntuDevVmVersion() {
-  cat "/etc/.ubuntu-dev-vm.version"
+  [[ -f "/etc/versions/ubuntu-dev-vm.version" ]] \
+    && cat "/etc/versions/ubuntu-dev-vm.version"
 }
 
 getUbuntuVersion() {
@@ -117,7 +119,7 @@ getKernelVersion() {
 
 getKittyVersion() {
   isPackageInstalled "kitty" \
-      && kitty --version | sed "s/kitty //;s/ created.*//"
+    && kitty --version | sed "s/kitty //;s/ created.*//"
 }
 
 getFirefoxVersion() {
@@ -148,6 +150,11 @@ getKeystoreExplorerVersion() {
 getGitVersion() {
   isPackageInstalled "git" \
     && git version | sed "s/.*version //"
+}
+
+getGitFilterRepoVersion() {
+  [[ -f "/usr/local/bin/git-filter-repo" ]] \
+    && cat "/etc/versions/git-filter-repo.version"
 }
 
 getGitLfsVersion() {
