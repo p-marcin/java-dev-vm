@@ -85,6 +85,7 @@
         <docker.buildx.build.sbom>--sbom=false</docker.buildx.build.sbom>
         <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=false</docker.buildx.build.sbom.scan.context>
         <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
+        <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <image.namespace>javowiec</image.namespace>
         <image.tag>${image.namespace}/${project.artifactId}:${project.version}</image.tag>
         <image.target>${project.build.directory}/docker</image.target>
@@ -244,7 +245,7 @@
                                 <argument>${docker.buildx.build.provenance}</argument>
                                 <argument>${docker.buildx.build.sbom}</argument>
                                 <argument>${docker.buildx.build.sbom.scan.context}</argument>
-                                <argument>--build-arg=BUILD_DATE=${maven.build.timestamp}</argument>
+                                <argument>--build-arg=BUILD_TIMESTAMP=${build.timestamp}</argument>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <argument>--build-arg=GIT_REVISION=${git.revision}</argument>
                                 <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
