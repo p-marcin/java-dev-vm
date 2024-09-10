@@ -255,7 +255,7 @@ Thank you for being amazing!
 
 ## :pushpin: Copyright & License
 
-Copyright © 2024 Marcin P
+Copyright © 2024 Marcin P.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
