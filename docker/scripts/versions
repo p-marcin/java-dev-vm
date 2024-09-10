@@ -48,6 +48,7 @@ main() {
   logVersion "PIPX" "$(getPipxVersion)"
   logVersion "VIRTUALENV" "$(getVirtualEnvVersion)"
   logSection "CLOUD"
+  logVersion "GO" "$(getGoVersion)"
   logVersion "DOCKER CLIENT" "$(getDockerClientVersion)"
   logVersion "DOCKER SERVER" "$(getDockerServerVersion)"
   logVersion "DOCKER BUILDX" "$(getDockerBuildxVersion)"
@@ -234,6 +235,11 @@ getVirtualEnvVersion() {
   if isPackageInstalled "virtualenv"; then
     virtualenv --version | sed "s/virtualenv //;s/ from.*//"
   fi
+}
+
+getGoVersion() {
+  isPackageInstalled "go" \
+    && go version | sed "s/.* go//;s/ .*//"
 }
 
 getDockerClientVersion() {

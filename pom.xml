@@ -52,6 +52,8 @@
         <gulp-cli.version>3.0.0</gulp-cli.version>
         <!-- https://github.com/pypa/virtualenv/releases -->
         <virtualenv.version>20.26.3</virtualenv.version>
+        <!-- https://go.dev/doc/devel/release -->
+        <go.version>1.23.1</go.version>
         <!-- https://github.com/docker/scout-cli/releases -->
         <docker-scout.version>1.13.0</docker-scout.version>
         <!-- https://kubernetes.io/releases
@@ -267,6 +269,7 @@
                                 <argument>--build-arg=YARN_VERSION=${yarn.version}</argument>
                                 <argument>--build-arg=GULP_CLI_VERSION=${gulp-cli.version}</argument>
                                 <argument>--build-arg=VIRTUALENV_VERSION=${virtualenv.version}</argument>
+                                <argument>--build-arg=GO_VERSION=${go.version}</argument>
                                 <argument>--build-arg=DOCKER_SCOUT_VERSION=${docker-scout.version}</argument>
                                 <argument>--build-arg=KUBECTL_VERSION=${kubectl.version}</argument>
                                 <argument>--build-arg=KUBECTL_KREW_VERSION=${kubectl-krew.version}</argument>
