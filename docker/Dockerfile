@@ -1,5 +1,6 @@
 ARG UBUNTU_VERSION=${ubuntu.version}
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
+ARG BUILDKIT_SBOM_SCAN_STAGE=true
 FROM alpine:latest AS kitty
 ARG KITTY_VERSION
 RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
