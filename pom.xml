@@ -54,8 +54,6 @@
         <virtualenv.version>20.26.3</virtualenv.version>
         <!-- https://github.com/docker/scout-cli/releases -->
         <docker-scout.version>1.13.0</docker-scout.version>
-        <!-- https://github.com/bcicen/ctop/releases -->
-        <ctop.version>0.7.7</ctop.version>
         <!-- https://kubernetes.io/releases
              https://github.com/kubernetes/kubernetes/releases -->
         <kubectl.version>1.31.0</kubectl.version>
@@ -272,7 +270,6 @@
                                 <argument>--build-arg=GULP_CLI_VERSION=${gulp-cli.version}</argument>
                                 <argument>--build-arg=VIRTUALENV_VERSION=${virtualenv.version}</argument>
                                 <argument>--build-arg=DOCKER_SCOUT_VERSION=${docker-scout.version}</argument>
-                                <argument>--build-arg=CTOP_VERSION=${ctop.version}</argument>
                                 <argument>--build-arg=KUBECTL_VERSION=${kubectl.version}</argument>
                                 <argument>--build-arg=KUBECTL_KREW_VERSION=${kubectl-krew.version}</argument>
                                 <argument>--build-arg=K3D_VERSION=${k3d.version}</argument>
