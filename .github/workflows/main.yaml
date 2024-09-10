@@ -30,7 +30,7 @@ jobs:
       - name: Extract digest of Community Image
         id: digest_community
         run: |
-          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.3-community --format "{{ json .Manifest.Digest }}" | jq -r)
+          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.4-community --format "{{ json .Manifest.Digest }}" | jq -r)
           echo "digest=${digest}" >> ${GITHUB_OUTPUT}
       - name: Attest Provenance of Community Image
         uses: actions/attest-build-provenance@v1
@@ -42,7 +42,7 @@ jobs:
       - name: Extract digest of Ultimate Image
         id: digest_ultimate
         run: |
-          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.3-ultimate --format "{{ json .Manifest.Digest }}" | jq -r)
+          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.4-ultimate --format "{{ json .Manifest.Digest }}" | jq -r)
           echo "digest=${digest}" >> ${GITHUB_OUTPUT}
       - name: Attest Provenance of Ultimate Image
         uses: actions/attest-build-provenance@v1
