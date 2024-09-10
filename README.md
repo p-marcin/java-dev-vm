@@ -16,8 +16,8 @@
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
       <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/main.yaml?label=Build%20and%20Push%20Images&logo=github&logoColor=white" alt="Build and Push Images"/>
   </a>
-  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/provenance.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/provenance.yaml?label=Provenance%20Verification&logo=github&logoColor=white" alt="Provenance Verification"/>
+  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
   </a>
 </p>
 
@@ -209,6 +209,7 @@ In [`/home/dev/.bash_aliases`](docker/home-config/.bash_aliases) you can find so
 
 * [Accessing application in a Windows browser](docs/accessing-application-in-a-windows-browser.md)
 * [Certificate Setup](docs/certificate.md)
+* [Verifying Provenance and SBOM Attestations](docs/provenance-and-sbom.md)
 
 ## :pushpin: How to build image locally?
 
