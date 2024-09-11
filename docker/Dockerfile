@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:labs
 ARG UBUNTU_VERSION=${ubuntu.version}
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 ARG BUILDKIT_SBOM_SCAN_STAGE=true
@@ -40,10 +41,10 @@ RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/release
 FROM alpine:latest AS git-filter-repo
 ARG GIT_FILTER_REPO_VERSION
 RUN wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
-    && mkdir "/git-filter-repo" \
+    && mkdir "/git-filter-repo" "/versions" \
     && tar --extract --no-same-owner --directory="/git-filter-repo" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${GIT_FILTER_REPO_VERSION}/git-filter-repo" \
-    && chmod +x "/git-filter-repo/git-filter-repo" \
-    && printf "${GIT_FILTER_REPO_VERSION}\n" > "/git-filter-repo/git-filter-repo.version"
+    && chmod g-w,+x "/git-filter-repo/git-filter-repo" \
+    && printf "${GIT_FILTER_REPO_VERSION}\n" > "/versions/git-filter-repo.version"
 
 FROM alpine:latest AS github-cli
 ARG GITHUB_CLI_VERSION
@@ -117,41 +118,13 @@ RUN export PATH="/node/bin:${PATH}" \
     && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
     && rm -r "/node/share"
 
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS krew
-ARG KUBECTL_KREW_VERSION
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends git > /dev/null \
-    && mkdir --parents "/krew/store" "/krew/receipts" \
-    && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
-    && /tmp/krew-linux_amd64 install krew > /dev/null \
-    && mv "/root/.krew/store/krew" "/krew/store" \
-    && mv "/root/.krew/index" "/krew" \
-    && mv "/root/.krew/receipts"/* "/krew/receipts" \
-    && mv "/root/.krew" "/"
-
-FROM scratch AS dev-tools
-COPY --from=kitty /kitty /dev-tools/kitty/
-COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
-COPY --from=postman /postman /dev-tools/postman/
-COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
-COPY --from=git-filter-repo /git-filter-repo /dev-tools/
-COPY --from=github-cli /github-cli /dev-tools/
-COPY --from=github-cli /bash_completion.d /bash_completion.d/
-COPY --from=sdkman /sdkman /dev-tools/sdkman/
-COPY --from=kafka /kafka /dev-tools/kafka/
-COPY --from=node /node /dev-tools/node/
-COPY --from=node /bash_completion.d /bash_completion.d/
-COPY --from=krew /.krew /dev-tools/.krew/
-COPY --from=krew /krew /dev-tools/krew/
-
 FROM alpine:latest AS cloud-tools
 ARG GO_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
-    && mkdir --parents "/cloud-tools" "/docker/cli-plugins" "/bash_completion.d" \
+    && mkdir --parents "/go" "/docker/cli-plugins" "/cloud-tools" "/bash_completion.d" \
     && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/cloud-tools" --file="go.tar.gz"
+    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz"
 ARG DOCKER_SCOUT_VERSION
 RUN wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
@@ -170,18 +143,45 @@ RUN wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-am
     && chmod +x "/cloud-tools/helm" \
     && /cloud-tools/helm completion bash > "/bash_completion.d/helm"
 
-FROM scratch AS all-tools
-COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
-COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
-COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
-COPY --from=cloud-tools /docker /all-tools/cloud-tools/docker/
-COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
-COPY --chmod=644 docker-config /all-tools/docker-config/
-COPY --chmod=644 home-config /all-tools/home-config/
-COPY --chmod=644 kitty-config /all-tools/kitty-config/
-COPY scripts yad-panel/yad-panel /all-tools/scripts/
-COPY --chmod=644 yad-panel/config /all-tools/yad-panel/config/
-COPY --chmod=644 yad-panel/service /all-tools/yad-panel/service/
+FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS krew
+ARG KUBECTL_KREW_VERSION
+RUN apt-get -qq update -y \
+    && apt-get install -y --no-install-recommends git > /dev/null \
+    && mkdir --parents "/krew/store" "/krew/receipts" \
+    && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
+    && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
+    && /tmp/krew-linux_amd64 install krew > /dev/null \
+    && mv "/root/.krew/store/krew" "/krew/store" \
+    && mv "/root/.krew/index" "/krew" \
+    && mv "/root/.krew/receipts"/* "/krew/receipts" \
+    && mv "/root/.krew" "/"
+
+FROM scratch AS dependencies
+COPY --from=kitty                               /kitty                          /dev-tools/kitty/
+COPY --from=dbeaver                             /dbeaver                        /dev-tools/dbeaver/
+COPY --from=postman                             /postman                        /dev-tools/postman/
+COPY --from=keystore-explorer                   /keystore-explorer              /dev-tools/keystore-explorer/
+COPY --from=git-filter-repo                     /git-filter-repo                /binaries/
+COPY --from=git-filter-repo                     /versions                       /versions/
+COPY --from=github-cli                          /github-cli                     /binaries/
+COPY --from=github-cli                          /bash_completion.d              /bash_completion.d/
+COPY --from=sdkman                              /sdkman                         /dev-tools/sdkman/
+COPY --from=kafka                               /kafka                          /dev-tools/kafka/
+COPY --from=node                                /node                           /dev-tools/node/
+COPY --from=node                                /bash_completion.d              /bash_completion.d/
+COPY --from=cloud-tools                         /go                             /go/
+COPY --from=cloud-tools                         /docker                         /docker/
+COPY --from=cloud-tools                         /cloud-tools                    /binaries/
+COPY --from=cloud-tools                         /bash_completion.d              /bash_completion.d/
+COPY --from=krew                                /.krew                          /user-home/.krew/
+COPY --from=krew                                /krew                           /dev-tools/krew/
+COPY --chmod=644                                docker-config                   /docker-config/
+COPY --chmod=644 --exclude=*/.root_environment  home-config                     /user-home/
+COPY --chmod=644                                home-config/.root_environment   /root-home/.environment
+COPY --chmod=644                                kitty-config                    /user-home/.config/kitty/
+COPY                                            scripts */yad-panel             /binaries/
+COPY --chmod=644                                yad-panel/config                /yad-panel/config/
+COPY --chmod=644                                yad-panel/service               /yad-panel/service/
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main
 ARG UBUNTU_DEV_VM_VERSION
@@ -296,80 +296,66 @@ fi\n" >> "/root/.bashrc" \
         -or -name "*udev*" \) \
         -exec rm {} +
 
-COPY --from=all-tools /all-tools /tmp/all-tools/
+COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools          /opt/
+COPY --from=dependencies                            /binaries           /usr/local/bin/
+COPY --from=dependencies                            /versions           /etc/versions/
+COPY --from=dependencies                            /bash_completion.d  /etc/bash_completion.d/
+COPY --from=dependencies                            /go                 /usr/local/go/
+COPY --from=dependencies                            /docker             /usr/local/lib/docker/
+COPY --from=dependencies                            /docker-config      /etc/docker/
+COPY --from=dependencies --chown=${USER}:${USER}    /user-home          /home/${USER}/
+COPY --from=dependencies                            /root-home          /root/
+COPY --from=dependencies                            /yad-panel/config   /etc/yad-panel/
+COPY --from=dependencies                            /yad-panel/service  /etc/systemd/system/
 
 ARG VIRTUALENV_VERSION
-# Move docker-config
-RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
-    # Move home-config
-    && su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
-    && mv "/tmp/all-tools/home-config/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
-    && mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
-    && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
-    # Move kitty-config
-    && mkdir --parents "/home/${USER}/.config/kitty" \
-    && mv "/tmp/all-tools/kitty-config"/* "/home/${USER}/.config/kitty" \
-    # Move scripts
-    && mv "/tmp/all-tools/scripts"/* "/usr/local/bin" \
-    # Move yad-panel
-    && mkdir "/etc/yad-panel" \
-    && mv "/tmp/all-tools/yad-panel/config"/* "/etc/yad-panel" \
+# Firefox configuration
+RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
+    && mv "/home/${USER}/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
+    # Yad Panel configuration \
     && chmod 755 "/etc/yad-panel/apps" \
-    && mv "/tmp/all-tools/yad-panel/service"/* "/etc/systemd/system" \
     && systemctl enable yad-panel.service > /dev/null \
-    # Move bash_completion.d
-    && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
-    # Move dev-tools/git-filter-repo and dev-tools/gh
-    && mv "/tmp/all-tools/dev-tools/git-filter-repo" "/usr/local/bin" \
-    && mv "/tmp/all-tools/dev-tools/git-filter-repo.version" "/etc/versions" \
-    && mv "/tmp/all-tools/dev-tools/gh" "/usr/local/bin" \
-    # Move dev-tools
-    && mv "/tmp/all-tools/dev-tools"/* "/opt" \
-    && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
-    && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
-    && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
-    && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
-    && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
-    # Move sdkman
-    && mkdir --parents "/home/${USER}/.sdkman/candidates" \
-    && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
-    && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
-    # Move dev-tools/.krew
-    && mv "/tmp/all-tools/dev-tools/.krew" "/home/${USER}" \
-    && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
-    && ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
-    && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
-    && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
-    && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
-    # Move cloud-tools
-    && mv "/tmp/all-tools/cloud-tools/docker" "/usr/local/lib" \
-    && mv "/tmp/all-tools/cloud-tools/go" "/usr/local" \
-    && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
-    # Corepack/Yarn configuration
-    && mkdir --parents "/home/${USER}/.cache/node" \
-    && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
-    && printf "enableTelemetry: 0" > "/home/${USER}/.yarnrc.yml" \
-    # Docker configuration
-    && usermod --append --groups "docker" "${USER}" \
-    && docker completion bash > "/etc/bash_completion.d/docker" \
     # Gedit configuration
     && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
         && gsettings set \"org.gnome.gedit.preferences.editor\" \"tabs-size\" \"4\" \
         && gsettings set \"org.gnome.gedit.preferences.editor\" \"scheme\" \"oblivion\" \
         && gsettings set \"org.gnome.gedit.preferences.ui\" \"statusbar-visible\" \"false\"" \
     && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
+    # Kitty configuration
+    && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
+    # Apps configuration
+    && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
+    && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
+    && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
+    && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     # Git configuration
-    && git config --global "init.defaultBranch" "main" \
-    && mv "/root/.gitconfig" "/home/${USER}" \
+    && su -c "git config --global \"init.defaultBranch\" \"main\"" "${USER}" \
+    # SdkMan configuration
+    && mkdir --parents "/home/${USER}/.sdkman/candidates" \
+    && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
+    && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
     # Maven configuration
     && mkdir --parents "/home/${USER}/.m2/repository" \
     && cp "/home/${USER}/.sdkman/candidates/maven/current/conf/settings.xml" "/home/${USER}/.sdkman/candidates/maven/current/conf/toolchains.xml" \
         "/home/${USER}/.m2" \
+    # Corepack/Yarn configuration
+    && mkdir --parents "/home/${USER}/.cache/node" \
+    && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
+    && printf "enableTelemetry: 0" > "/home/${USER}/.yarnrc.yml" \
     # Python configuration
     && su -c "pipx install virtualenv==${VIRTUALENV_VERSION}" "${USER}" \
     && mkdir "/opt/pipx" \
     && mv "/home/${USER}/.local/share/pipx/venvs/virtualenv" "/opt/pipx" \
     && ln --symbolic "/opt/pipx/virtualenv" "/home/${USER}/.local/share/pipx/venvs/virtualenv" \
+    # Docker configuration
+    && usermod --append --groups "docker" "${USER}" \
+    && docker completion bash > "/etc/bash_completion.d/docker" \
+    # Kubectl Krew configuration
+    && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
+    && ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
+    && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
+    && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
+    && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
     # Make sure everything in /home/${USER} belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
     # Make sure everything in /opt belongs to ${USER}
