@@ -2,198 +2,165 @@
 ARG UBUNTU_VERSION=${ubuntu.version}
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 ARG BUILDKIT_SBOM_SCAN_STAGE=true
-FROM alpine:latest AS kitty
+
+FROM ubuntu:${UBUNTU_VERSION} AS dependencies
 ARG KITTY_VERSION
-RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
-    && mkdir "/kitty" \
-    && tar --extract --no-same-owner --directory="/kitty" --file="kitty.txz" "bin" "lib"
-
-FROM alpine:latest AS intellij-idea
-ARG INTELLIJ_IDEA_EDITION
-ARG INTELLIJ_IDEA_VERSION
-RUN wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
-    && mkdir "/intellij-idea" \
-    && tar --extract --gzip --no-same-owner --directory="/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz" \
-    && if [ -d "/intellij-idea/help" ]; then rm -r "/intellij-idea/help"; fi
-
-FROM alpine:latest AS dbeaver
 ARG DBEAVER_VERSION
-RUN wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${DBEAVER_VERSION}/dbeaver-ce-${DBEAVER_VERSION}-linux.gtk.x86_64-nojdk.tar.gz" \
-    && mkdir "/dbeaver" \
-    && tar --extract --gzip --no-same-owner \
-        --exclude="dbeaver/dbeaver-ce.desktop" \
-        --exclude="dbeaver/readme" \
-        --directory="/dbeaver" --strip-components=1 --file="dbeaver.tar.gz"
-
-FROM alpine:latest AS postman
 ARG POSTMAN_VERSION
-RUN wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
-    && mkdir "/postman" \
-    && tar --extract --gzip --no-same-owner --directory="/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app"
-
-FROM alpine:latest AS keystore-explorer
 ARG KEYSTORE_EXPLORER_VERSION
-RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${KEYSTORE_EXPLORER_VERSION}/kse-${KEYSTORE_EXPLORER_VERSION//./}.zip" \
-    && mkdir "/keystore-explorer" \
-    && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
-    && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION//./}"/* "/keystore-explorer"
-
-FROM alpine:latest AS git-filter-repo
 ARG GIT_FILTER_REPO_VERSION
-RUN wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
-    && mkdir "/git-filter-repo" "/versions" \
-    && tar --extract --no-same-owner --directory="/git-filter-repo" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${GIT_FILTER_REPO_VERSION}/git-filter-repo" \
-    && chmod g-w,+x "/git-filter-repo/git-filter-repo" \
-    && printf "${GIT_FILTER_REPO_VERSION}\n" > "/versions/git-filter-repo.version"
-
-FROM alpine:latest AS github-cli
 ARG GITHUB_CLI_VERSION
-RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
-    && mkdir "/github-cli" "/bash_completion.d" \
-    && tar --extract --gzip --no-same-owner --directory="/github-cli" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
-    && chmod +x "/github-cli/gh" \
-    && /github-cli/gh completion -s bash > "/bash_completion.d/gh"
-
-FROM ubuntu:${UBUNTU_VERSION} AS sdkman
-ENV DEBIAN_FRONTEND=noninteractive \
-    DEBCONF_NOWARNINGS="yes"
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends apt-utils ca-certificates curl unzip wget zip > /dev/null \
-    && export SDKMAN_DIR="/sdkman" \
-    && wget -q -O - "https://get.sdkman.io" | bash > /dev/null \
-    && sed --in-place "/sdkman_auto_answer=/c sdkman_auto_answer=true" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place "/sdkman_auto_env=/c sdkman_auto_env=true" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place "/sdkman_colour_enable=/c sdkman_colour_enable=false" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place "/sdkman_curl_connect_timeout=/c sdkman_curl_connect_timeout=15" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place "/sdkman_curl_max_time=/c sdkman_curl_max_time=30" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place "/sdkman_selfupdate_feature=/c sdkman_selfupdate_feature=false" "${SDKMAN_DIR}/etc/config" \
-    && sed --in-place 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
 ARG JAVA_VERSION
-RUN export SDKMAN_DIR="/sdkman" && \
-    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
-        && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
-        && sdk flush > /dev/null"
 ARG MAVEN_VERSION
-RUN export SDKMAN_DIR="/sdkman" && \
-    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
-        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
-        && sdk flush > /dev/null"
 ARG SPRING_BOOT_CLI_VERSION
-RUN export SDKMAN_DIR="/sdkman" && \
-    bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
-        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
-        && sdk flush > /dev/null"
-
-FROM alpine:latest AS kafka
 ARG KAFKA_VERSION
 ARG SCALA_VERSION
-RUN wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
-    && mkdir "/kafka" \
-    && tar --extract --gzip --no-same-owner \
-        --exclude="kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin/windows" \
-        --directory="/kafka" --strip-components=1 --file="kafka.tar.gz" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs"
-
-FROM ubuntu:${UBUNTU_VERSION} AS node
 ARG NODE_VERSION
-ENV DEBIAN_FRONTEND=noninteractive \
-    DEBCONF_NOWARNINGS="yes"
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends apt-utils ca-certificates wget xz-utils > /dev/null \
-    && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && mkdir --parents "/node/.cache" "/yarn-config" "/bash_completion.d" \
-    && tar --extract --no-same-owner --directory="/node" --strip-components=1 --file="node.tar.xz" \
-        "node-v${NODE_VERSION}-linux-x64/bin" \
-        "node-v${NODE_VERSION}-linux-x64/include" \
-        "node-v${NODE_VERSION}-linux-x64/lib" \
-    && export PATH="/node/bin:${PATH}" \
-    && npm completion bash > "/bash_completion.d/npm"
 ARG PNPM_VERSION
 ARG YARN_VERSION
-RUN export PATH="/node/bin:${PATH}" \
-    && corepack enable \
-    && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
-    && mv "/root/.cache/node/corepack" "/node/.cache" \
-    && pnpm completion bash > "/bash_completion.d/pnpm" \
-    && printf "enableTelemetry: 0\n" > "/yarn-config/.yarnrc.yml"
 ARG GULP_CLI_VERSION
-RUN export PATH="/node/bin:${PATH}" \
-    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
-    && rm -r "/node/share"
-
-FROM alpine:latest AS cloud-tools
 ARG GO_VERSION
-RUN apk -q update \
-    && apk -q add --no-cache git \
-    && mkdir --parents "/go" "/go-config/telemetry" "/docker/cli-plugins" "/cloud-tools" "/bash_completion.d" \
-    && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz" \
-    && printf "off\n" > "/go-config/telemetry/mode"
 ARG DOCKER_SCOUT_VERSION
-RUN wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
-    && chmod +x "/docker/cli-plugins/docker-scout"
 ARG KUBECTL_VERSION
-RUN wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
-    && chmod +x "/cloud-tools/kubectl" \
-    && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl"
-ARG K3D_VERSION
-RUN wget -q -O "/cloud-tools/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
-    && chmod +x "/cloud-tools/k3d" \
-    && /cloud-tools/k3d completion bash > "/bash_completion.d/k3d"
-ARG HELM_VERSION
-RUN wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
-    && chmod +x "/cloud-tools/helm" \
-    && /cloud-tools/helm completion bash > "/bash_completion.d/helm"
-
-FROM ubuntu:${UBUNTU_VERSION} AS krew
 ARG KUBECTL_KREW_VERSION
+ARG K3D_VERSION
+ARG HELM_VERSION
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NOWARNINGS="yes"
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends apt-utils ca-certificates git wget > /dev/null \
-    && mkdir --parents "/krew/store" "/krew/receipts" "/krew-config" \
-    && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
-    && /tmp/krew-linux_amd64 install krew > /dev/null \
-    && mv "/root/.krew/store/krew" "/krew/store" \
-    && mv "/root/.krew/index" "/krew" \
-    && mv "/root/.krew/receipts"/* "/krew/receipts" \
-    && mv "/root/.krew"/* "/krew-config"
+RUN echo "> Preparation..." \
+        && apt-get -qq update -y \
+        && apt-get install -y --no-install-recommends ca-certificates curl git unzip wget xz-utils zip > /dev/null \
+        && mkdir "/bash_completion.d" "/binaries" "/dev-tools" "/user-home" "/versions" \
+    && echo "> Install Kitty..." \
+        && mkdir "/dev-tools/kitty" \
+        && wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
+        && tar --extract --no-same-owner --directory="/dev-tools/kitty" --file="kitty.txz" "bin" "lib" \
+    && echo "> Install DBeaver..." \
+        && mkdir "/dev-tools/dbeaver" \
+        && wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${DBEAVER_VERSION}/dbeaver-ce-${DBEAVER_VERSION}-linux.gtk.x86_64-nojdk.tar.gz" \
+        && tar --extract --gzip --no-same-owner \
+            --exclude="dbeaver/dbeaver-ce.desktop" \
+            --exclude="dbeaver/readme" \
+            --directory="/dev-tools/dbeaver" --strip-components=1 --file="dbeaver.tar.gz" \
+    && echo "> Install Postman..." \
+        && mkdir "/dev-tools/postman" \
+        && wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app" \
+    && echo "> Install KeyStore Explorer..." \
+        && mkdir "/dev-tools/keystore-explorer" \
+        && KEYSTORE_EXPLORER_VERSION_NO_DOTS=$(printf "${KEYSTORE_EXPLORER_VERSION}" | tr -d ".") \
+        && wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${KEYSTORE_EXPLORER_VERSION}/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}.zip" \
+        && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
+        && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}"/* "/dev-tools/keystore-explorer" \
+    && echo "> Install Git Filter-Repo..." \
+        && wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
+        && tar --extract --no-same-owner --directory="/binaries" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${GIT_FILTER_REPO_VERSION}/git-filter-repo" \
+        && chmod g-w,+x "/binaries/git-filter-repo" \
+        && printf "${GIT_FILTER_REPO_VERSION}\n" > "/versions/git-filter-repo.version" \
+    && echo "> Install GitHub CLI..." \
+        && wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
+        && chmod +x "/binaries/gh" \
+        && /binaries/gh completion -s bash > "/bash_completion.d/gh" \
+    && echo "> Install SdkMan..." \
+        && export SDKMAN_DIR="/dev-tools/sdkman" \
+        && wget -q -O - "https://get.sdkman.io" | bash > /dev/null 2>&1 \
+        && sed --in-place "/sdkman_auto_answer=/c sdkman_auto_answer=true" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place "/sdkman_auto_env=/c sdkman_auto_env=true" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place "/sdkman_colour_enable=/c sdkman_colour_enable=false" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place "/sdkman_curl_connect_timeout=/c sdkman_curl_connect_timeout=10" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place "/sdkman_curl_max_time=/c sdkman_curl_max_time=120" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place "/sdkman_selfupdate_feature=/c sdkman_selfupdate_feature=false" "${SDKMAN_DIR}/etc/config" \
+        && sed --in-place 's/\bfind\b/find -L/g' "${SDKMAN_DIR}/bin/sdkman-init.sh" "${SDKMAN_DIR}/src/sdkman-upgrade.sh" "${SDKMAN_DIR}/src/sdkman-list.sh" \
+        && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
+    && echo \"> Install Java...\" \
+        && sdk flush > /dev/null 2>&1 \
+        && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
+    && echo \"> Install Maven...\" \
+        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
+    && echo \"> Install Spring Boot CLI...\" \
+        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
+        && sdk flush > /dev/null" \
+    && echo "> Install Kafka..." \
+        && mkdir "/dev-tools/kafka" \
+        && wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+        && tar --extract --gzip --no-same-owner \
+            --exclude="kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin/windows" \
+            --directory="/dev-tools/kafka" --strip-components=1 --file="kafka.tar.gz" \
+            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin" \
+            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
+            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs" \
+    && echo "> Install Node..." \
+        && mkdir --parents "/dev-tools/node/.cache" \
+        && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+        && tar --extract --no-same-owner --directory="/dev-tools/node" --strip-components=1 --file="node.tar.xz" \
+            "node-v${NODE_VERSION}-linux-x64/bin" \
+            "node-v${NODE_VERSION}-linux-x64/include" \
+            "node-v${NODE_VERSION}-linux-x64/lib" \
+        && export PATH="/dev-tools/node/bin:${PATH}" \
+        && npm completion bash > "/bash_completion.d/npm" \
+    && echo "> Install Pnpm/Yarn..." \
+        && corepack enable \
+        && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
+        && mv "/root/.cache/node/corepack" "/dev-tools/node/.cache" \
+        && pnpm completion bash > "/bash_completion.d/pnpm" 2> /dev/null \
+        && printf "enableTelemetry: 0\n" > "/user-home/.yarnrc.yml" \
+    && echo "> Install Gulp CLI..." \
+        && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
+        && rm -r "/dev-tools/node/share" \
+    && echo "> Install Go..." \
+        && mkdir --parents "/go" "/user-home/.config/go/telemetry" \
+        && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz" \
+        && printf "off\n" > "/user-home/.config/go/telemetry/mode" \
+    && echo "> Install Docker Scout..." \
+        && mkdir --parents "/docker/cli-plugins" \
+        && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
+        && chmod +x "/docker/cli-plugins/docker-scout" \
+    && echo "> Install Kubectl..." \
+        && wget -q -O "/binaries/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+        && chmod +x "/binaries/kubectl" \
+        && /binaries/kubectl completion bash > "/bash_completion.d/kubectl" \
+    && echo "> Install Kubectl Krew..." \
+        && mkdir --parents "/dev-tools/krew/store" "/dev-tools/krew/receipts" "/user-home/.krew" \
+        && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
+        && /tmp/krew-linux_amd64 install krew > /dev/null 2>&1 \
+        && mv "/root/.krew/store/krew" "/dev-tools/krew/store" \
+        && mv "/root/.krew/index" "/dev-tools/krew" \
+        && mv "/root/.krew/receipts"/* "/dev-tools/krew/receipts" \
+        && mv "/root/.krew"/* "/user-home/.krew" \
+    && echo "> Install K3d..." \
+        && wget -q -O "/binaries/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
+        && chmod +x "/binaries/k3d" \
+        && /binaries/k3d completion bash > "/bash_completion.d/k3d" \
+    && echo "> Install Helm..." \
+        && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
+        && chmod +x "/binaries/helm" \
+        && /binaries/helm completion bash > "/bash_completion.d/helm"
+COPY                                                                    scripts */yad-panel             /binaries/
+COPY --chmod=644 --exclude=.root_environment --exclude=firefox-user.js  home-config                     /user-home/
+COPY --chmod=644                                                        kitty-config                    /user-home/.config/kitty/
+COPY --chmod=644                                                        yad-panel/config/yad-panel.png  /yad-panel/config/
+COPY --chmod=644                                                        yad-panel/config/apps           /yad-panel/config/apps/
 
-FROM scratch AS dependencies
-COPY --from=kitty                               /kitty                          /dev-tools/kitty/
-COPY --from=dbeaver                             /dbeaver                        /dev-tools/dbeaver/
-COPY --from=postman                             /postman                        /dev-tools/postman/
-COPY --from=keystore-explorer                   /keystore-explorer              /dev-tools/keystore-explorer/
-COPY --from=git-filter-repo                     /git-filter-repo                /binaries/
-COPY --from=git-filter-repo                     /versions                       /versions/
-COPY --from=github-cli                          /github-cli                     /binaries/
-COPY --from=github-cli                          /bash_completion.d              /bash_completion.d/
-COPY --from=sdkman                              /sdkman                         /dev-tools/sdkman/
-COPY --from=kafka                               /kafka                          /dev-tools/kafka/
-COPY --from=node                                /node                           /dev-tools/node/
-COPY --from=node                                /yarn-config                    /user-home/
-COPY --from=node                                /bash_completion.d              /bash_completion.d/
-COPY --from=cloud-tools                         /go                             /go/
-COPY --from=cloud-tools                         /go-config                      /user-home/.config/go/
-COPY --from=cloud-tools                         /docker                         /docker/
-COPY --from=cloud-tools                         /cloud-tools                    /binaries/
-COPY --from=cloud-tools                         /bash_completion.d              /bash_completion.d/
-COPY --from=krew                                /krew                           /dev-tools/krew/
-COPY --from=krew                                /krew-config                    /user-home/.krew/
-COPY --chmod=644                                docker-config                   /docker-config/
-COPY --chmod=644 --exclude=.root_environment    home-config                     /user-home/
-COPY --chmod=644                                home-config/.root_environment   /root-home/.environment
-COPY --chmod=644                                kitty-config                    /user-home/.config/kitty/
-COPY                                            scripts */yad-panel             /binaries/
-COPY --chmod=644                                yad-panel/config                /yad-panel/config/
-COPY --chmod=644                                yad-panel/service               /yad-panel/service/
+FROM ubuntu:${UBUNTU_VERSION} AS intellij-idea
+ARG INTELLIJ_IDEA_EDITION
+ARG INTELLIJ_IDEA_VERSION
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NOWARNINGS="yes"
+RUN echo "> Preparation..." \
+        && apt-get -qq update -y \
+        && apt-get install -y --no-install-recommends ca-certificates wget > /dev/null \
+    && echo "> Install IntelliJ IDEA..." \
+        && mkdir "/intellij-idea" \
+        && wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz" \
+        && if [ -d "/intellij-idea/help" ]; then rm -r "/intellij-idea/help"; fi
 
-FROM ubuntu:${UBUNTU_VERSION}
+FROM ubuntu:${UBUNTU_VERSION} AS main
 ARG UBUNTU_DEV_VM_VERSION
 ARG GIT_REVISION
 ARG UID=1001
@@ -212,198 +179,199 @@ LABEL org.opencontainers.image.authors="https://github.com/P-Marcin" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.revision="${GIT_REVISION}"
 
-# System setup
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends \
-        # Custom repositories
-        software-properties-common \
-        # System
-        apt-utils \
-        ca-certificates \
-        dbus \
-        dbus-x11 \
-        cron \
-        iproute2 \
-        iptables \
-        iputils-ping \
-        net-tools \
-        procps \
-        sudo \
-        systemd \
-        tzdata \
-        udev \
-        # Utilities
-        bash-completion \
-        curl \
-        gedit \
-        gnome-keyring \
-        gnupg \
-        jq \
-        less \
-        nano \
-        tree \
-        unzip \
-        vim-tiny \
-        wget \
-        xz-utils \
-        yad \
-        zip \
-        # OpenGL dependency
-        libgl1 libegl1 \
-        # IntelliJ IDEA dependency
-        libxtst6 \
-        # Kitty Terminal dependency
-        libxcb-xkb1 \
-        # Postman dependency
-        libnss3 \
-        # Python
-        python3-dev pipx \
-        > /dev/null \
-    # Custom repositories installation
-    && wget -q -O "/etc/apt/keyrings/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
-        && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
-           > "/etc/apt/sources.list.d/docker.list" \
-    && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
-    && wget -q -O "/etc/apt/keyrings/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
-        && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/git-lfs.asc] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
-           > "/etc/apt/sources.list.d/git-lfs.list" \
-    && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
-    # Firefox Apt over Snap prioritization
-    && printf "Package: *\n\
+RUN echo "> Install packages..." \
+        && apt-get -qq update -y \
+        && apt-get install -y --no-install-recommends \
+            # Custom repositories
+            software-properties-common \
+            # System
+            apt-utils \
+            ca-certificates \
+            dbus \
+            dbus-x11 \
+            cron \
+            iproute2 \
+            iptables \
+            iputils-ping \
+            net-tools \
+            procps \
+            sudo \
+            systemd \
+            tzdata \
+            udev \
+            # Utilities
+            bash-completion \
+            curl \
+            gedit \
+            gnome-keyring \
+            gnupg \
+            jq \
+            less \
+            nano \
+            tree \
+            unzip \
+            vim-tiny \
+            wget \
+            xz-utils \
+            yad \
+            zip \
+            # OpenGL dependency
+            libgl1 libegl1 \
+            # Kitty Terminal dependency
+            libxcb-xkb1 \
+            # IntelliJ IDEA dependency
+            libxtst6 \
+            # Postman dependency
+            libnss3 \
+            # Python
+            python3-dev pipx \
+            > /dev/null \
+    && echo "> Install custom repositories..." \
+        && wget -q -O "/etc/apt/keyrings/docker.asc" "https://download.docker.com/linux/ubuntu/gpg" \
+            && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") stable\n" \
+               > "/etc/apt/sources.list.d/docker.list" \
+        && add-apt-repository -y "ppa:git-core/ppa" > /dev/null \
+        && wget -q -O "/etc/apt/keyrings/git-lfs.asc" "https://packagecloud.io/github/git-lfs/gpgkey" \
+            && printf "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/git-lfs.asc] https://packagecloud.io/github/git-lfs/ubuntu $(sed --quiet "s/VERSION_CODENAME=//p" "/etc/os-release") main\n" \
+               > "/etc/apt/sources.list.d/git-lfs.list" \
+        && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
+    && echo "> Prioritize Firefox Apt over Snap..." \
+        && printf "Package: *\n\
 Pin: release o=LP-PPA-mozillateam\n\
 Pin-Priority: 1001\n\
 Package: firefox\n\
 Pin: version 1:1snap*\n\
 Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
-    # Package installation
-    && apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends \
-        # Packages from custom repositories
-        docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-        git git-lfs \
-        firefox libpci3 \
-        > /dev/null \
-    # Systemd setup
-    && find "/etc/systemd/system" \
-        "/lib/systemd/system" \
-        -path "*.wants/*" \
-        \( -name "*getty*" \
-        -or -name "*apt-daily*" \
-        -or -name "*systemd-timesyncd*" \
-        -or -name "*systemd-logind*" \
-        -or -name "*systemd-vconsole-setup*" \
-        -or -name "*systemd-readahead*" \
-        -or -name "*udev*" \) \
-        -exec rm {} + \
-    && systemctl set-default multi-user.target \
-	&& systemctl mask dev-hugepages.mount sys-fs-fuse-connections.mount network.service \
-    # User setup
-    && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
-    && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
-    && usermod --home "/nonexistent" ubuntu \
-    && rm -r "/home/ubuntu" \
-    # Create projects directory
-    && mkdir "/home/${USER}/projects" \
-    # Source .environment in .bashrc
-    && printf "\nif [ -f ~/.environment ]; then\n\
+    && echo "> Install packages from custom repositories..." \
+        && apt-get -qq update -y \
+        && apt-get install -y --no-install-recommends \
+            docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
+            git git-lfs \
+            firefox libpci3 \
+            > /dev/null \
+    && echo "> Setup Systemd..." \
+        && find "/etc/systemd/system" \
+            "/lib/systemd/system" \
+            -path "*.wants/*" \
+            \( -name "*getty*" \
+            -or -name "*apt-daily*" \
+            -or -name "*systemd-timesyncd*" \
+            -or -name "*systemd-logind*" \
+            -or -name "*systemd-vconsole-setup*" \
+            -or -name "*systemd-readahead*" \
+            -or -name "*udev*" \) \
+            -exec rm {} + \
+        && systemctl set-default multi-user.target > /dev/null 2>&1 \
+        && systemctl mask dev-hugepages.mount sys-fs-fuse-connections.mount network.service > /dev/null 2>&1 \
+    && echo "> Setup ${USER} user..." \
+        && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
+        && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
+    && echo "> Remove ubuntu user's home directory..." \
+        && usermod --home "/nonexistent" ubuntu \
+        && rm -r "/home/ubuntu" \
+    && echo "> Create projects directory..." \
+        && mkdir "/home/${USER}/projects" \
+    && echo "> Source .environment in .bashrc..." \
+        && printf "\nif [ -f ~/.environment ]; then\n\
     . ~/.environment\n\
 fi\n" >> "/home/${USER}/.bashrc" \
-    && printf "\nif [ -f ~/.environment ]; then\n\
+        && printf "\nif [ -f ~/.environment ]; then\n\
     . ~/.environment\n\
 fi\n" >> "/root/.bashrc" \
-    # Create .${project.artifactId}.version file
-    && mkdir "/etc/versions" \
-    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${project.artifactId}.version" \
-    # Cleanup
-    && apt-get -qq autoremove -y --purge \
-    && apt-get -qq clean -y \
-    && rm -rf "/root/.cache" \
-        "/root/.dbus" \
-        "/root/.launchpadlib" \
-        "/root/.wget-hsts" \
-        "/tmp"/* \
-        "/usr/local/share/.cache"/* \
-        "/var/cache"/* \
-        "/var/lib/apt/lists"/* \
-        "/var/log"/* \
-        "/var/tmp"/*
+    && echo "> Create ${project.artifactId}.version file..." \
+        && mkdir "/etc/versions" \
+        && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${project.artifactId}.version" \
+    && echo "> Cleanup..." \
+        && apt-get -qq autoremove -y --purge \
+        && apt-get -qq clean -y \
+        && rm -rf "/root/.cache" \
+            "/root/.dbus" \
+            "/root/.launchpadlib" \
+            "/root/.wget-hsts" \
+            "/tmp"/* \
+            "/usr/local/share/.cache"/* \
+            "/var/cache"/* \
+            "/var/lib/apt/lists"/* \
+            "/var/log"/* \
+            "/var/tmp"/*
 
-COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools          /opt/
-COPY --from=dependencies                            /binaries           /usr/local/bin/
-COPY --from=dependencies                            /versions           /etc/versions/
-COPY --from=dependencies                            /bash_completion.d  /etc/bash_completion.d/
-COPY --from=dependencies                            /go                 /usr/local/go/
-COPY --from=dependencies                            /docker             /usr/local/lib/docker/
-COPY --from=dependencies                            /docker-config      /etc/docker/
-COPY --from=dependencies --chown=${USER}:${USER}    /user-home          /home/${USER}/
-COPY --from=dependencies                            /root-home          /root/
-COPY --from=dependencies                            /yad-panel/config   /etc/yad-panel/
-COPY --from=dependencies                            /yad-panel/service  /etc/systemd/system/
+COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools                      /opt/
+COPY --from=dependencies                            /binaries                       /usr/local/bin/
+COPY --from=dependencies                            /go                             /usr/local/go/
+COPY --from=dependencies                            /docker                         /usr/local/lib/docker/
+COPY --from=dependencies                            /bash_completion.d              /etc/bash_completion.d/
+COPY --from=dependencies                            /versions                       /etc/versions/
+COPY --from=dependencies --chown=${USER}:${USER}    /user-home                      /home/${USER}/
+COPY --from=dependencies                            /yad-panel/config               /etc/yad-panel/
+COPY --chmod=644                                    home-config/.root_environment   /root/.environment
+COPY --chmod=644                                    docker-config                   /etc/docker/
+COPY --chmod=644                                    yad-panel/service               /etc/systemd/system/
+RUN --mount=type=bind,source=home-config/firefox-user.js,target=/tmp/firefox-user.js \
+    echo "> Configure Firefox profile..." \
+        && sudo -u ${USER} firefox --headless -CreateProfile ${USER} > /dev/null 2>&1 \
+        && cp "/tmp/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js"
 
 ARG VIRTUALENV_VERSION
-# Firefox configuration
-RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
-    && mv "/home/${USER}/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
-    # Yad Panel configuration \
-    && chmod u+rwx,g+rx,o+rx "/etc/yad-panel/apps" \
-    && systemctl enable yad-panel.service > /dev/null \
-    # Gedit configuration
-    && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
-        && gsettings set \"org.gnome.gedit.preferences.editor\" \"tabs-size\" \"4\" \
-        && gsettings set \"org.gnome.gedit.preferences.editor\" \"scheme\" \"oblivion\" \
-        && gsettings set \"org.gnome.gedit.preferences.ui\" \"statusbar-visible\" \"false\"" \
-    && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
-    # Kitty configuration
-    && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
-    # Apps configuration
-    && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
-    && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
-    && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
-    && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
-    # Git configuration
-    && su -c "git config --global \"init.defaultBranch\" \"main\"" "${USER}" \
-    # SdkMan configuration
-    && mkdir --parents "/home/${USER}/.sdkman/candidates" \
-    && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
-    && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
-    # Maven configuration
-    && mkdir --parents "/home/${USER}/.m2/repository" \
-    && cp "/home/${USER}/.sdkman/candidates/maven/current/conf/settings.xml" "/home/${USER}/.sdkman/candidates/maven/current/conf/toolchains.xml" \
-        "/home/${USER}/.m2" \
-    # Corepack/Yarn configuration
-    && mkdir --parents "/home/${USER}/.cache/node" \
-    && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
-    # Python configuration
-    && su -c "pipx install virtualenv==${VIRTUALENV_VERSION}" "${USER}" \
-    && mkdir "/opt/pipx" \
-    && mv "/home/${USER}/.local/share/pipx/venvs/virtualenv" "/opt/pipx" \
-    && ln --symbolic "/opt/pipx/virtualenv" "/home/${USER}/.local/share/pipx/venvs/virtualenv" \
-    # Docker configuration
-    && usermod --append --groups "docker" "${USER}" \
-    && docker completion bash > "/etc/bash_completion.d/docker" \
-    # Kubectl Krew configuration
-    && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
-    && ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
-    && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
-    && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
-    && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
-    # Make sure everything in /home/${USER} belongs to ${USER}
-    && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
-    # Make sure everything in /opt belongs to ${USER}
-    && chown --recursive "${USER}":"${USER}" "/opt"/* \
-    && chmod go+w "/opt" \
-    # Cleanup
-    && find "/home/${USER}/.cache" -mindepth 1 -maxdepth 1 -not -name "node" -exec rm -r {} + \
-    && rm -rf "/home/${USER}/.dbus" \
-        "/home/${USER}/.local/share/man" \
-        "/home/${USER}/.local/state" \
-        "/root/.cache" \
-        "/root/.dbus" \
-        "/tmp"/* \
-        "/usr/local/share/.cache"/* \
-        "/var/cache"/* \
-        "/var/log"/* \
-        "/var/tmp"/*
+RUN echo "> Enable Yad-Panel..." \
+        && systemctl enable yad-panel.service > /dev/null 2>&1 \
+    && echo "> Configure Gedit..." \
+        && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
+            && gsettings set \"org.gnome.gedit.preferences.editor\" \"tabs-size\" \"4\" \
+            && gsettings set \"org.gnome.gedit.preferences.editor\" \"scheme\" \"oblivion\" \
+            && gsettings set \"org.gnome.gedit.preferences.ui\" \"statusbar-visible\" \"false\"" > /dev/null 2>&1 \
+        && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
+    && echo "> Configure Kitty..." \
+        && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
+    && echo "> Configure GUI Apps..." \
+        && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
+        && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
+        && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
+        && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
+    && echo "> Configure Git..." \
+        && sudo -u ${USER} git config --global "init.defaultBranch" "main" \
+    && echo "> Configure SdkMan..." \
+        && mkdir --parents "/home/${USER}/.sdkman/candidates" \
+        && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
+        && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
+    && echo "> Configure Maven..." \
+        && mkdir --parents "/home/${USER}/.m2/repository" \
+        && cp "/home/${USER}/.sdkman/candidates/maven/current/conf/settings.xml" "/home/${USER}/.sdkman/candidates/maven/current/conf/toolchains.xml" \
+            "/home/${USER}/.m2" \
+    && echo "> Configure Corepack..." \
+        && mkdir --parents "/home/${USER}/.cache/node" \
+    && echo "> Configure Yarn..." \
+        && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
+    && echo "> Install VirtualEnv..." \
+        && sudo -u ${USER} pipx install virtualenv==${VIRTUALENV_VERSION} > /dev/null 2>&1 \
+        && mkdir "/opt/pipx" \
+        && chown "${USER}":"${USER}" "/opt/pipx" \
+        && mv "/home/${USER}/.local/share/pipx/venvs/virtualenv" "/opt/pipx" \
+        && ln --symbolic "/opt/pipx/virtualenv" "/home/${USER}/.local/share/pipx/venvs/virtualenv" \
+    && echo "> Configure Docker..." \
+        && usermod --append --groups "docker" "${USER}" \
+        && docker completion bash > "/etc/bash_completion.d/docker" \
+    && echo "> Configure Kubectl Krew..." \
+        && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
+        && sudo -u ${USER} ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
+        && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
+        && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
+        && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
+    && echo "> Make sure everything in /home/${USER} belongs to ${USER} user..." \
+        && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
+    && echo "> Grant write permission on /opt to ${USER} user..." \
+        && chmod go+w "/opt" \
+    && echo "> Cleanup..." \
+        && find "/home/${USER}/.cache" -mindepth 1 -maxdepth 1 -not -name "node" -exec rm -r {} + \
+        && rm -rf "/home/${USER}/.dbus" \
+            "/home/${USER}/.local/share/man" \
+            "/home/${USER}/.local/state" \
+            "/root/.cache" \
+            "/root/.dbus" \
+            "/tmp"/* \
+            "/usr/local/share/.cache"/* \
+            "/var/cache"/* \
+            "/var/log"/* \
+            "/var/tmp"/*
 
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
 
