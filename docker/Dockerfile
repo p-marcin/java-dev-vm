@@ -13,6 +13,7 @@ ARG GITHUB_CLI_VERSION
 ARG JAVA_VERSION
 ARG MAVEN_VERSION
 ARG SPRING_BOOT_CLI_VERSION
+ARG ASYNC_PROFILER_VERSION
 ARG KAFKA_VERSION
 ARG SCALA_VERSION
 ARG NODE_VERSION
@@ -81,6 +82,13 @@ RUN echo "> Preparation..." \
     && echo \"> Install Spring Boot CLI...\" \
         && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
         && sdk flush > /dev/null" \
+    && echo "> Install Async Profiler..." \
+        && mkdir "/dev-tools/async-profiler" \
+        && wget -q -O "async-profiler.tar.gz" "https://github.com/async-profiler/async-profiler/releases/download/v${ASYNC_PROFILER_VERSION}/async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64.tar.gz" \
+        && tar --extract --gzip --no-same-owner \
+            --directory="/dev-tools/async-profiler" --strip-components=1 --file="async-profiler.tar.gz" \
+            "async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64/bin" \
+            "async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64/lib" \
     && echo "> Install Kafka..." \
         && mkdir "/dev-tools/kafka" \
         && wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
@@ -338,6 +346,9 @@ RUN echo "> Enable Yad-Panel..." \
         && mkdir --parents "/home/${USER}/.m2/repository" \
         && cp "/home/${USER}/.sdkman/candidates/maven/current/conf/settings.xml" "/home/${USER}/.sdkman/candidates/maven/current/conf/toolchains.xml" \
             "/home/${USER}/.m2" \
+    && echo "> Configure Async Profiler..." \
+        && ln --symbolic "/opt/async-profiler/bin/asprof" "/usr/local/bin/asprof" \
+        && printf "kernel.perf_event_paranoid=1\nkernel.kptr_restrict=0\n" > "/etc/sysctl.d/999-async-profiler.conf" \
     && echo "> Configure Corepack..." \
         && mkdir --parents "/home/${USER}/.cache/node" \
     && echo "> Configure Yarn..." \
