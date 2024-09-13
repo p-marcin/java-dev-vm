@@ -111,7 +111,7 @@ RUN echo "> Preparation..." \
     && echo "> Install Go..." \
         && mkdir --parents "/go" "/user-home/.config/go/telemetry" \
         && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-        && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/go" --strip-components=1 --file="go.tar.gz" \
         && printf "off\n" > "/user-home/.config/go/telemetry/mode" \
     && echo "> Install Docker Scout..." \
         && mkdir --parents "/docker/cli-plugins" \
