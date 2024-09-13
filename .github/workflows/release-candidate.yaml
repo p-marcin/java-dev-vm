@@ -1,16 +1,11 @@
-name: Build, Test and Push Images
+name: Build, Test and Push RC Images
 
-on:
-  release:
-    types: [ published ]
+on: workflow_dispatch
 
 jobs:
   main:
-    name: Build, Test and Push Images
+    name: Build, Test and Push RC Images
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      attestations: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,49 +47,9 @@ jobs:
         run: mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,community,skip-rebuild
       - name: Remove RC Community Image from local repository
         run: docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community
-      - name: Verify Provenance attached to Community Image
-        run: |
-          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community \
-            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
-      - name: Verify SBOM attached to Community Image
-        run: |
-          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community \
-            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
       - name: Build and Push RC Ultimate Image
-        run: mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,skip-remove-builder
+        run: mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,prune-builder
       - name: Test RC Ultimate Image
         run: mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,skip-rebuild
       - name: Remove RC Ultimate Image from local repository
         run: docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate
-      - name: Verify Provenance attached to Ultimate Image
-        run: |
-          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate \
-            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
-      - name: Verify SBOM attached to Ultimate Image
-        run: |
-          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate \
-            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
-      - name: Push Community Image
-        run: mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Pcommunity,github-actions,skip-rebuild,skip-remove-builder
-      - name: Extract digest of Community Image
-        id: digest-community
-        run: |
-          digest=$(docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community --format "{{ json .Manifest.Digest }}" | jq -r)
-          echo "DIGEST=${digest}" >> ${GITHUB_OUTPUT}
-      - name: Attest Provenance of Community Image
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: index.docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}
-          subject-digest: ${{ steps.digest-community.outputs.DIGEST }}
-      - name: Push Ultimate Image
-        run: mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Pcommunity,github-actions,skip-rebuild,prune-builder
-      - name: Extract digest of Ultimate Image
-        id: digest-ultimate
-        run: |
-          digest=$(docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate --format "{{ json .Manifest.Digest }}" | jq -r)
-          echo "DIGEST=${digest}" >> ${GITHUB_OUTPUT}
-      - name: Attest Provenance of Ultimate Image
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: index.docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}
-          subject-digest: ${{ steps.digest-ultimate.outputs.DIGEST }}

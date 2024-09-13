@@ -1,8 +1,8 @@
 :: RESTARTS CONTAINER
 @echo off
 setlocal
-set imageVersion=${project.version}-community
-set imageName=${project.artifactId}
+set imageVersion=${image.version}-community
+set imageName=${image.name}
 
 echo Stopping %imageName%...
 docker container stop %imageName% > nul 2>&1

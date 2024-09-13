@@ -1,7 +1,6 @@
 # syntax=docker/dockerfile:labs
 ARG UBUNTU_VERSION=${ubuntu.version}
 ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
-ARG BUILDKIT_SBOM_SCAN_STAGE=true
 
 FROM ubuntu:${UBUNTU_VERSION} AS dependencies
 ARG KITTY_VERSION
@@ -10,7 +9,7 @@ ARG POSTMAN_VERSION
 ARG KEYSTORE_EXPLORER_VERSION
 ARG GIT_FILTER_REPO_VERSION
 ARG GITHUB_CLI_VERSION
-ARG JAVA_VERSION
+ARG JDK_VERSION
 ARG MAVEN_VERSION
 ARG SPRING_BOOT_CLI_VERSION
 ARG ASYNC_PROFILER_VERSION
@@ -46,12 +45,12 @@ RUN echo "> Preparation..." \
     && echo "> Install Postman..." \
         && mkdir "/dev-tools/postman" \
         && wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
-        && tar --extract --gzip --no-same-owner --directory="/dev-tools/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app" \
+        && tar --extract --gzip --no-same-owner --exclude="**/Postman" --directory="/dev-tools/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app" \
     && echo "> Install KeyStore Explorer..." \
         && mkdir "/dev-tools/keystore-explorer" \
         && KEYSTORE_EXPLORER_VERSION_NO_DOTS=$(printf "${KEYSTORE_EXPLORER_VERSION}" | tr -d ".") \
         && wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${KEYSTORE_EXPLORER_VERSION}/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}.zip" \
-        && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
+        && unzip -q "kse.zip" -x "*.exe" -x "*.dll" -d "/tmp" \
         && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}"/* "/dev-tools/keystore-explorer" \
     && echo "> Install Git Filter-Repo..." \
         && wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
@@ -76,11 +75,11 @@ RUN echo "> Preparation..." \
         && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
     && echo \"> Install Java...\" \
         && sdk flush > /dev/null 2>&1 \
-        && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
+        && sdk install \"java\" \"${JDK_VERSION}\" > /dev/null 2>&1 \
     && echo \"> Install Maven...\" \
-        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
+        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null 2>&1 \
     && echo \"> Install Spring Boot CLI...\" \
-        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null \
+        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null 2>&1 \
         && sdk flush > /dev/null" \
     && echo "> Install Async Profiler..." \
         && mkdir "/dev-tools/async-profiler" \
@@ -99,7 +98,7 @@ RUN echo "> Preparation..." \
             "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
             "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs" \
     && echo "> Install Node..." \
-        && mkdir --parents "/dev-tools/node/.cache" \
+        && mkdir "/dev-tools/node" \
         && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
         && tar --extract --no-same-owner --directory="/dev-tools/node" --strip-components=1 --file="node.tar.xz" \
             "node-v${NODE_VERSION}-linux-x64/bin" \
@@ -108,6 +107,7 @@ RUN echo "> Preparation..." \
         && export PATH="/dev-tools/node/bin:${PATH}" \
         && npm completion bash > "/bash_completion.d/npm" \
     && echo "> Install Pnpm/Yarn..." \
+        && mkdir "/dev-tools/node/.cache" \
         && corepack enable \
         && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
         && mv "/root/.cache/node/corepack" "/dev-tools/node/.cache" \
@@ -117,9 +117,9 @@ RUN echo "> Preparation..." \
         && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
         && rm -r "/dev-tools/node/share" \
     && echo "> Install Go..." \
-        && mkdir --parents "/go" "/user-home/.config/go/telemetry" \
+        && mkdir --parents "/dev-tools/go" "/user-home/.config/go/telemetry" \
         && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-        && tar --extract --gzip --no-same-owner --directory="/go" --strip-components=1 --file="go.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/go" --strip-components=1 --file="go.tar.gz" \
         && printf "off\n" > "/user-home/.config/go/telemetry/mode" \
     && echo "> Install Docker Scout..." \
         && mkdir --parents "/docker/cli-plugins" \
@@ -176,14 +176,14 @@ ENV USER=${image.user} \
     DISPLAY=${image.display} \
     DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NOWARNINGS="yes"
-LABEL org.opencontainers.image.authors="https://github.com/P-Marcin" \
-      org.opencontainers.image.vendor="P-Marcin" \
-      org.opencontainers.image.title="${image.namespace}/${project.artifactId}" \
+LABEL org.opencontainers.image.authors="https://github.com/${repo.owner}" \
+      org.opencontainers.image.vendor="${repo.owner}" \
+      org.opencontainers.image.title="${image.namespace}/${image.name}" \
       org.opencontainers.image.description="Ubuntu DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
-      org.opencontainers.image.ref.name="${project.artifactId}" \
-      org.opencontainers.image.version="v${project.version}" \
-      org.opencontainers.image.source="https://github.com/P-Marcin/${project.artifactId}" \
-      org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${project.artifactId}" \
+      org.opencontainers.image.ref.name="${image.name}" \
+      org.opencontainers.image.version="v${image.version}" \
+      org.opencontainers.image.source="https://github.com/${repo.owner}/${image.name}" \
+      org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${image.name}" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.revision="${GIT_REVISION}"
 RUN echo "> Install packages..." \
@@ -285,9 +285,9 @@ fi\n" >> "/home/${USER}/.bashrc" \
         && printf "\nif [ -f ~/.environment ]; then\n\
     . ~/.environment\n\
 fi\n" >> "/root/.bashrc" \
-    && echo "> Create ${project.artifactId}.version file..." \
+    && echo "> Create ${image.name}.version file..." \
         && mkdir "/etc/versions" \
-        && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${project.artifactId}.version" \
+        && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${image.name}.version" \
     && echo "> Cleanup..." \
         && apt-get -qq autoremove -y --purge \
         && apt-get -qq clean -y \
@@ -303,7 +303,6 @@ fi\n" >> "/root/.bashrc" \
             "/var/tmp"/*
 COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools                      /opt/
 COPY --from=dependencies                            /binaries                       /usr/local/bin/
-COPY --from=dependencies                            /go                             /usr/local/go/
 COPY --from=dependencies                            /docker                         /usr/local/lib/docker/
 COPY --from=dependencies                            /bash_completion.d              /etc/bash_completion.d/
 COPY --from=dependencies                            /versions                       /etc/versions/
@@ -331,7 +330,7 @@ RUN echo "> Enable Yad-Panel..." \
     && echo "> Configure GUI Apps..." \
         && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
         && ln --symbolic "/opt/dbeaver/dbeaver" "/usr/local/bin/dbeaver" \
-        && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
+        && ln --symbolic "/opt/postman/postman" "/usr/local/bin/postman" \
         && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     && echo "> Configure Git..." \
         && sudo -u ${USER} git config --global "init.defaultBranch" "main" \
@@ -348,7 +347,6 @@ RUN echo "> Enable Yad-Panel..." \
         && printf "kernel.perf_event_paranoid=1\nkernel.kptr_restrict=0\n" > "/etc/sysctl.d/999-async-profiler.conf" \
     && echo "> Configure Corepack..." \
         && mkdir --parents "/home/${USER}/.cache/node" \
-    && echo "> Configure Yarn..." \
         && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
     && echo "> Install VirtualEnv..." \
         && sudo -u ${USER} pipx install virtualenv==${VIRTUALENV_VERSION} > /dev/null 2>&1 \
@@ -360,8 +358,8 @@ RUN echo "> Enable Yad-Panel..." \
         && usermod --append --groups "docker" "${USER}" \
         && docker completion bash > "/etc/bash_completion.d/docker" \
     && echo "> Configure Kubectl Krew..." \
-        && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
         && sudo -u ${USER} ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
+        && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
         && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
         && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
         && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
@@ -383,7 +381,7 @@ RUN echo "> Enable Yad-Panel..." \
             "/var/tmp"/*
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
 WORKDIR /home/${USER}
-HEALTHCHECK --interval=10s --retries=3 --timeout=10s \
+HEALTHCHECK --interval=5s --retries=3 --timeout=10s \
   CMD systemctl status yad-panel | grep "Active: active (running)" || exit 1
 ARG BUILD_TIMESTAMP
 LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}"

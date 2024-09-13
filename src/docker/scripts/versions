@@ -119,12 +119,12 @@ getKernelVersion() {
 
 getKittyVersion() {
   isPackageInstalled "kitty" \
-    && kitty --version | sed "s/kitty //;s/ created.*//"
+    && kitty --version | sed "s/kitty //;s/ .*//"
 }
 
 getFirefoxVersion() {
   isPackageInstalled "firefox" \
-    && /usr/bin/firefox --version | sed "s/.* //"
+    && firefox --version | sed "s/.* //"
 }
 
 getIntellijIdeaVersion() {
@@ -181,7 +181,7 @@ getSdkManDependencyVersion() {
 
 getAsyncProfilerVersion() {
   isPackageInstalled "asprof" \
-      && asprof --version | sed "s/Async-profiler //;s/ .*//"
+      && asprof --version | sed "s/.*profiler //;s/ .*//"
 }
 
 getKafkaVersion() {
