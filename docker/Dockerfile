@@ -186,7 +186,6 @@ LABEL org.opencontainers.image.authors="https://github.com/P-Marcin" \
       org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${project.artifactId}" \
       org.opencontainers.image.licenses="Apache-2.0" \
       org.opencontainers.image.revision="${GIT_REVISION}"
-
 RUN echo "> Install packages..." \
         && apt-get -qq update -y \
         && apt-get install -y --no-install-recommends \
@@ -302,7 +301,6 @@ fi\n" >> "/root/.bashrc" \
             "/var/lib/apt/lists"/* \
             "/var/log"/* \
             "/var/tmp"/*
-
 COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools                      /opt/
 COPY --from=dependencies                            /binaries                       /usr/local/bin/
 COPY --from=dependencies                            /go                             /usr/local/go/
@@ -318,7 +316,6 @@ RUN --mount=type=bind,source=home-config/firefox-user.js,target=/tmp/firefox-use
     echo "> Configure Firefox profile..." \
         && sudo -u ${USER} firefox --headless -CreateProfile ${USER} > /dev/null 2>&1 \
         && cp "/tmp/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js"
-
 ARG VIRTUALENV_VERSION
 RUN echo "> Enable Yad-Panel..." \
         && systemctl enable yad-panel.service > /dev/null 2>&1 \
@@ -384,12 +381,10 @@ RUN echo "> Enable Yad-Panel..." \
             "/var/cache"/* \
             "/var/log"/* \
             "/var/tmp"/*
-
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
-
 WORKDIR /home/${USER}
-
+HEALTHCHECK --interval=10s --retries=3 --timeout=10s \
+  CMD systemctl status yad-panel | grep "Active: active (running)" || exit 1
 ARG BUILD_TIMESTAMP
 LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}"
-
 CMD [ "/bin/systemd" ]
