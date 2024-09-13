@@ -2,7 +2,7 @@ name: Attestation Verification
 
 on:
   workflow_run:
-    workflows: [ Build and Push Images ]
+    workflows: [ Build, Test and Push Images ]
     types:
       - completed
   schedule:
@@ -17,9 +17,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Extract properties
+        run: |
+          echo "IMAGE_NAMESPACE=$(mvn help:evaluate -Dexpression=image.namespace -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "IMAGE_NAME=$(mvn help:evaluate -Dexpression=image.name -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "IMAGE_VERSION=$(mvn help:evaluate -Dexpression=image.version -q -DforceStdout)" >> ${GITHUB_ENV}
+      - name: Generate Workflow Stats
+        run: |
+          echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
+          echo "| Tool | Version |" >> ${GITHUB_STEP_SUMMARY}
+          echo "| --- | --- |" >> ${GITHUB_STEP_SUMMARY}
+          echo "| GitHub CLI | $(gh --version | grep gh | sed "s/.*version //;s/ (.*//") |" >> ${GITHUB_STEP_SUMMARY}
+          echo "### More information" >> ${GITHUB_STEP_SUMMARY}
+          echo "* [Verifying Provenance and SBOM Attestations](https://github.com/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}/blob/main/docs/provenance-and-sbom.md)" >> ${GITHUB_STEP_SUMMARY}
       - name: Verify Community Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.5-community --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community --owner "${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify Provenance attached to Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
       - name: Verify Ultimate Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.5-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify Provenance attached to Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"

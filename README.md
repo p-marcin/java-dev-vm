@@ -14,7 +14,7 @@
   </a>
   <br>
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/main.yaml?label=Build%20and%20Push%20Images&logo=github&logoColor=white" alt="Build and Push Images"/>
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
   </a>
   <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
       <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
@@ -191,7 +191,7 @@ issues when creating a k3s kubernetes cluster with [k3d](https://k3d.io).
 
 ## :pushpin: Useful Scripts
 
-On Ubuntu DEV VM there are some useful scripts which you can use. See [docker/scripts](docker/scripts).
+On Ubuntu DEV VM there are some useful scripts which you can use. See [src/docker/scripts](src/docker/scripts).
 
 <details>
   <summary>Click here to see an example</summary>
@@ -203,7 +203,7 @@ On Ubuntu DEV VM there are some useful scripts which you can use. See [docker/sc
 
 ## :pushpin: Useful Aliases
 
-In [`/home/dev/.bash_aliases`](docker/home-config/.bash_aliases) you can find some useful aliases which you can use.
+In [`/home/dev/.bash_aliases`](src/docker/home-config/.bash_aliases) you can find some useful aliases which you can use.
 
 ## :pushpin: Useful Docs
 
@@ -222,13 +222,13 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 * to build `-community` image:
 
 ```bash
-.\mvnw.cmd clean package
+.\mvnw.cmd clean install
 ```
 
 * to build `-ultimate` image:
 
 ```bash
-.\mvnw.cmd clean package -Pultimate
+.\mvnw.cmd clean install -Pultimate
 ```
 
 If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and
