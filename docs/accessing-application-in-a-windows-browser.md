@@ -2,15 +2,18 @@
 
 ## :pushpin: Prerequisites
 
-Make sure that you start Ubuntu DEV VM with `-p 80:80` flag (like in [restart.bat](../batch-scripts/restart.bat)). It will map `80` host (Windows) port to `80` container port.
+Make sure that you start Java DEV VM with `-p 80:80` flag (like in [restart.bat](../batch-scripts/restart.bat)). It will
+map `80` host (Windows) port to `80` container port.
 
-If you don't use Docker/Kubernetes to deploy your application, and it runs on `80` port on Ubuntu DEV VM, you can already access it in a Windows browser (e.g. Firefox) under url: `http://localhost`
+If you don't use Docker/Kubernetes to deploy your application, and it runs on `80` port on Java DEV VM, you can already
+access it in a Windows browser (e.g. Firefox) under url: `http://localhost`
 
 Otherwise, you need additional steps mentioned in next sections.
 
 ## :pushpin: Docker
 
-If you deploy your application inside Ubuntu DEV VM using Docker, you also need to map `80` host (Ubuntu DEV VM) port to `8080` container port.
+If you deploy your application inside Java DEV VM using Docker, you also need to map `80` host (Java DEV VM) port to
+`8080` container port.
 
 Example:
 
@@ -20,7 +23,8 @@ Example:
 
 ### Traefik Ingress Controller (default)
 
-If you deploy your application inside Ubuntu DEV VM using Kubernetes, you need to map `80` host (Ubuntu DEV VM) port to `80` Load Balancer (Ingress) port when creating a cluster:
+If you deploy your application inside Java DEV VM using Kubernetes, you need to map `80` host (Java DEV VM) port to `80`
+Load Balancer (Ingress) port when creating a cluster:
 
 `k3d cluster create --image "rancher/k3s:v$(kubectl version --client | grep "Client Version:" | sed "s/.*v//")-k3s1" --api-port 6443 --agents 1 -p "80:80@loadbalancer"`
 
@@ -28,7 +32,8 @@ After that you can create some deployment:
 
 `kubectl create deployment tomcat --image tomcat`
 
-Create also a ClusterIP service for it which maps `8080` port inside a cluster to `8080` port of the Pod within Deployment:
+Create also a ClusterIP service for it which maps `8080` port inside a cluster to `8080` port of the Pod within
+Deployment:
 
 `kubectl create service clusterip tomcat --tcp=8080:8080`
 
@@ -61,7 +66,8 @@ and create an ingress object with command:
 
 ### Nginx Ingress Controller
 
-If you deploy your application inside Ubuntu DEV VM using Kubernetes, you need to map `80` host (Ubuntu DEV VM) port to `80` Load Balancer (Ingress) port when creating a cluster and disable deployment of default Traefik Ingress Controller:
+If you deploy your application inside Java DEV VM using Kubernetes, you need to map `80` host (Java DEV VM) port to `80`
+Load Balancer (Ingress) port when creating a cluster and disable deployment of default Traefik Ingress Controller:
 
 `k3d cluster create --image "rancher/k3s:v$(kubectl version --client | grep "Client Version:" | sed "s/.*v//")-k3s1" --api-port 6443 --agents 1 -p "80:80@loadbalancer" --k3s-arg "--disable=traefik@server:0"`
 
@@ -73,7 +79,8 @@ After that you can create some deployment:
 
 `kubectl create deployment tomcat --image tomcat`
 
-Create also a ClusterIP service for it which maps `8080` port inside a cluster to `8080` port of the Pod within Deployment:
+Create also a ClusterIP service for it which maps `8080` port inside a cluster to `8080` port of the Pod within
+Deployment:
 
 `kubectl create service clusterip tomcat --tcp=8080:8080`
 
@@ -106,6 +113,7 @@ and create an ingress object with command:
 
 ## :pushpin: Tomcat server in a Windows browser
 
-If you go to `http://localhost` you'll see Tomcat server page which returns a 404 since there are no webapps loaded by default. Anyway, the request from Windows reaches Tomcat server deployed on Ubuntu DEV VM:
+If you go to `http://localhost` you'll see Tomcat server page which returns a 404 since there are no webapps loaded by
+default. Anyway, the request from Windows reaches Tomcat server deployed on Java DEV VM:
 
 ![Tomcat](images/tomcat.png)

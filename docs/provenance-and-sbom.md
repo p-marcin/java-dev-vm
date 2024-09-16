@@ -13,13 +13,13 @@ Attestations, and confirms that the Attestation refers to provided Docker Image.
 Verify Attestation with the following command:
 
 ```shell
-gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:XX.XX.X-community --owner P-Marcin
+gh attestation verify oci://docker.io/javowiec/java-dev-vm:XX.XX.X-community --owner P-Marcin
 ```
 
 ![GH Attestation Verify](images/gh-atestation-verify.png)
 
 The Attestation Verification is also scheduled
-here: https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/attestation-verification.yaml
+here: https://github.com/P-Marcin/java-dev-vm/actions/workflows/attestation-verification.yaml
 
 ## :pushpin: Verify Provenance attached to the image
 
@@ -37,7 +37,7 @@ in docker documentation.
 Verify Provenance attached to the image with the following command:
 
 ```shell
-docker buildx imagetools inspect javowiec/ubuntu-dev-vm:XX.XX.X-community --format "{{ json .Provenance.SLSA }}" > provenance.slsa.json
+docker buildx imagetools inspect javowiec/java-dev-vm:XX.XX.X-community --format "{{ json .Provenance.SLSA }}" > provenance.slsa.json
 ```
 
 ## :pushpin: Verify SBOM attached to the image
@@ -57,11 +57,11 @@ in docker documentation.
 Verify SBOM attached to the image with the following command:
 
 ```shell
-docker buildx imagetools inspect javowiec/ubuntu-dev-vm:XX.XX.X-community --format "{{ json .SBOM.SPDX }}" > sbom.spdx.json
+docker buildx imagetools inspect javowiec/java-dev-vm:XX.XX.X-community --format "{{ json .SBOM.SPDX }}" > sbom.spdx.json
 ```
 
 You can also list packages of the image with the following command:
 
 ```shell
-docker scout sbom javowiec/ubuntu-dev-vm:XX.XX.X-community --platform linux/amd64 --format list > sbom.list.txt
+docker scout sbom javowiec/java-dev-vm:XX.XX.X-community --platform linux/amd64 --format list > sbom.list.txt
 ```

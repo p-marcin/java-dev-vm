@@ -2,7 +2,7 @@
 @echo off
 setlocal
 set imageVersion=24.09.5-community
-set imageName=ubuntu-dev-vm
+set imageName=java-dev-vm
 
 echo Stopping %imageName%...
 docker container stop %imageName% > nul 2>&1

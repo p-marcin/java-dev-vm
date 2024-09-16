@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>pl.javowiec</groupId>
-    <artifactId>ubuntu-dev-vm</artifactId>
+    <artifactId>java-dev-vm</artifactId>
     <version>24.09.5</version>
 
-    <name>Ubuntu DEV VM</name>
+    <name>Java DEV VM</name>
 
     <properties>
         <!-- https://wiki.ubuntu.com/Releases
@@ -377,7 +377,7 @@
                                 <argument>--build-arg=BUILD_TIMESTAMP=${build.timestamp}</argument>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <argument>--build-arg=GIT_REVISION=${git.revision}</argument>
-                                <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${image.version}</argument>
+                                <argument>--build-arg=JAVA_DEV_VM_VERSION=${image.version}</argument>
                                 <argument>--build-arg=KITTY_VERSION=${kitty.version}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>

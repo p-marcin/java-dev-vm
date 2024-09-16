@@ -1,4 +1,4 @@
-# UBUNTU DEV VM
+# JAVA DEV VM
 alias bashrc="(gedit ${HOME}/.bashrc &>/dev/null &)"
 alias bashaliases="(gedit ${HOME}/.bash_aliases &>/dev/null &)"
 alias clear="tput reset"
