@@ -15,7 +15,7 @@ readonly YELLOW="\033[1;33m"
 main() {
   options "${ARGS[@]}"
   logSection "SYSTEM"
-  logVersion "UBUNTU DEV VM" "$(getUbuntuDevVmVersion)"
+  logVersion "JAVA DEV VM" "$(getJavaDevVmVersion)"
   logVersion "UBUNTU" "$(getUbuntuVersion)"
   logVersion "KERNEL" "$(getKernelVersion)"
   logVersion "KITTY TERMINAL" "$(getKittyVersion)"
@@ -104,9 +104,9 @@ logVersion() {
     "${YELLOW}" "${RESET}"
 }
 
-getUbuntuDevVmVersion() {
-  [[ -f "/etc/versions/ubuntu-dev-vm.version" ]] \
-    && cat "/etc/versions/ubuntu-dev-vm.version"
+getJavaDevVmVersion() {
+  [[ -f "/etc/versions/java-dev-vm.version" ]] \
+    && cat "/etc/versions/java-dev-vm.version"
 }
 
 getUbuntuVersion() {
