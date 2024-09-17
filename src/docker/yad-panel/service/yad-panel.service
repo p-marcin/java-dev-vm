@@ -7,8 +7,10 @@ After=network-online.target
 WantedBy=multi-user.target
 
 [Service]
-Restart=always
-RestartSec=2s
 User=${image.user}
 WorkingDirectory=/home/${image.user}
-ExecStart=/bin/bash -ic yad-panel
+Environment="DISPLAY=${image.display}"
+ExecStart=/usr/local/bin/yad-panel
+Restart=always
+RestartSec=3s
+KillMode=process
