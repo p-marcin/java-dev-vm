@@ -25,7 +25,7 @@ main() {
   logVersion "DBEAVER" "$(getDBeaverVersion)"
   logVersion "POSTMAN" "$(getPostmanVersion)"
   logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
-  logSection "VERSION CONTROL"
+  logSection "VERSION CONTROL SYSTEM"
   logVersion "GIT" "$(getGitVersion)"
   logVersion "GIT FILTER-REPO" "$(getGitFilterRepoVersion)"
   logVersion "GIT LFS" "$(getGitLfsVersion)"
