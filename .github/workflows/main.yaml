@@ -16,7 +16,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Extract properties
         run: |
-          echo "JDK_VERSION=$(mvn help:evaluate -Dexpression=jdk.version -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "JDK_LTS_VERSION=$(mvn help:evaluate -Dexpression=jdk-lts.version -q -DforceStdout)" >> ${GITHUB_ENV}
           echo "JDK_DISTRIBUTION=$(mvn help:evaluate -Dexpression=jdk.distribution -q -DforceStdout)" >> ${GITHUB_ENV}
           echo "IMAGE_NAMESPACE=$(mvn help:evaluate -Dexpression=image.namespace -q -DforceStdout)" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=$(mvn help:evaluate -Dexpression=image.name -q -DforceStdout)" >> ${GITHUB_ENV}
@@ -25,18 +25,18 @@ jobs:
         uses: actions/setup-java@v4
         id: setup-java
         with:
-          java-version: ${{ env.JDK_VERSION }}
+          java-version: ${{ env.JDK_LTS_VERSION }}
           distribution: ${{ env.JDK_DISTRIBUTION }}
           cache: maven
       - name: Generate Workflow Stats
         env:
-          JDK_VERSION: ${{ steps.setup-java.outputs.version }}
+          JDK_LTS_VERSION: ${{ steps.setup-java.outputs.version }}
           JDK_DISTRIBUTION: ${{ steps.setup-java.outputs.distribution }}
         run: |
           echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
           echo "| Tool | Version |" >> ${GITHUB_STEP_SUMMARY}
           echo "| --- | --- |" >> ${GITHUB_STEP_SUMMARY}
-          echo "| Java | ${JDK_VERSION}-${JDK_DISTRIBUTION,,} |" >> ${GITHUB_STEP_SUMMARY}
+          echo "| Java | ${JDK_LTS_VERSION}-${JDK_DISTRIBUTION,,} |" >> ${GITHUB_STEP_SUMMARY}
           echo "| Maven | $(mvn --version | grep "Apache Maven" | sed "s/.*Maven //;s/ (.*//") |" >> ${GITHUB_STEP_SUMMARY}
           echo "| Docker Client | $(docker version --format "{{.Client.Version}}") |" >> ${GITHUB_STEP_SUMMARY}
           echo "| Docker Server | $(docker version --format "{{.Server.Version}}") |" >> ${GITHUB_STEP_SUMMARY}
