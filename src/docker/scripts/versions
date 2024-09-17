@@ -105,8 +105,8 @@ logVersion() {
 }
 
 getJavaDevVmVersion() {
-  [[ -f "/etc/versions/java-dev-vm.version" ]] \
-    && cat "/etc/versions/java-dev-vm.version"
+  [[ -f "/etc/versions/${image.name}.version" ]] \
+    && cat "/etc/versions/${image.name}.version"
 }
 
 getUbuntuVersion() {
