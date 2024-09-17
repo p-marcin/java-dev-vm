@@ -4,7 +4,7 @@
 
     <groupId>pl.javowiec</groupId>
     <artifactId>java-dev-vm</artifactId>
-    <version>24.09.5</version>
+    <version>24.09.6</version>
 
     <name>Java DEV VM</name>
 
@@ -252,6 +252,25 @@
                             </target>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>update-batch-scripts</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <replaceregexp file="batch-scripts/restart.bat"
+                                               match="imageVersion=(.*)"
+                                               replace="imageVersion=${image.version}-community"
+                                               byline="true"/>
+                                <replaceregexp file="batch-scripts/restart.bat"
+                                               match="imageName=(.*)"
+                                               replace="imageName=${image.name}"
+                                               byline="true"/>
+                            </target>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -270,22 +289,6 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${project.build.directory}</outputDirectory>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>process-templates</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/.templates</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                            <outputDirectory>${project.basedir}</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
