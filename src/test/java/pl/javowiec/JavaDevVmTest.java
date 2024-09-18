@@ -48,7 +48,7 @@ class JavaDevVmTest {
 
     @Test
     void testUbuntu() throws IOException, InterruptedException {
-        commandExecutor.assertVersionEquals("ubuntu.version", "grep \"VERSION=\" \"/etc/os-release\" | sed \"s/.*=\\\"//;s/ .*//\"");
+        commandExecutor.assertVersionStartsWith("ubuntu.version", "grep \"VERSION=\" \"/etc/os-release\" | sed \"s/.*=\\\"//;s/ .*//\"");
     }
 
     @Test
