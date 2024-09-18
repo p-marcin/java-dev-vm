@@ -238,13 +238,13 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 * to build `-community` image:
 
 ```bash
-.\mvnw.cmd clean install -DskipTests -Pcommunity
+.\mvnw.cmd clean install -Pcommunity
 ```
 
 * to build `-ultimate` image:
 
 ```bash
-.\mvnw.cmd clean install -DskipTests -Pultimate
+.\mvnw.cmd clean install -Pultimate
 ```
 
 If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and

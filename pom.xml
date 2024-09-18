@@ -68,35 +68,7 @@
         <!-- https://github.com/helm/helm/releases -->
         <helm.version>3.16.1</helm.version>
 
-        <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
-        <testcontainers.version>1.20.1</testcontainers.version>
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-        <slf4j-simple.version>2.0.16</slf4j-simple.version>
-        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-        <junit-jupiter.version>5.11.0</junit-jupiter.version>
-        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
-        <assertj-core.version>3.26.3</assertj-core.version>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
-        <maven-surefire-plugin.version>3.5.0</maven-surefire-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
-        <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-resources-plugin -->
-        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/properties-maven-plugin -->
-        <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin -->
-        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-install-plugin -->
-        <maven-install-plugin.version>3.1.3</maven-install-plugin.version>
-        <!-- https://mvnrepository.com/artifact/org.codehaus.mojo/exec-maven-plugin -->
-        <exec-maven-plugin.version>3.4.1</exec-maven-plugin.version>
-
-        <!-- Resource filtering -->
-        <image.user>dev</image.user>
-        <image.display>host.docker.internal:0.0</image.display>
-
-        <!-- Docker buildx command -->
+        <!-- Docker buildx properties -->
         <builder.name>${image.name}-builder</builder.name>
         <docker.buildx.build.output>--output=type=docker</docker.buildx.build.output>
         <docker.buildx.build.provenance>--provenance=false</docker.buildx.build.provenance>
@@ -105,11 +77,26 @@
         <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <repo.owner>p-marcin</repo.owner>
+        <image.user>dev</image.user>
+        <image.display>host.docker.internal:0.0</image.display>
         <image.namespace>javowiec</image.namespace>
         <image.name>${project.artifactId}</image.name>
         <image.version>${project.version}</image.version>
         <image.tag.rc/>
         <image.target>${project.build.directory}/docker</image.target>
+
+        <!-- Maven dependency versions -->
+        <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
+        <testcontainers.version>1.20.1</testcontainers.version>
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-compress -->
+        <!-- @Patch org.testcontainers:testcontainers - dependency org.apache.commons:commons-compress:1.24.0 is vulnerable -->
+        <commons-compress.version>1.27.1</commons-compress.version>
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
+        <slf4j-simple.version>2.0.16</slf4j-simple.version>
+        <!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
+        <junit-jupiter.version>5.11.0</junit-jupiter.version>
+        <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
+        <assertj-core.version>3.26.3</assertj-core.version>
 
         <!-- Maven plugin properties -->
         <rebuild.skip>false</rebuild.skip>
@@ -129,10 +116,10 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <!-- Dependency org.apache.commons:commons-compress:1.24.0 is vulnerable -->
+                <!-- @Patch org.testcontainers:testcontainers - dependency org.apache.commons:commons-compress:1.24.0 is vulnerable -->
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
-                <version>1.27.1</version>
+                <version>${commons-compress.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -173,8 +160,38 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-antrun-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.3.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>properties-maven-plugin</artifactId>
+                    <version>1.2.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.4.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <version>3.1.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>exec-maven-plugin</artifactId>
+                    <version>3.4.1</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -202,7 +219,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-antrun-plugin</artifactId>
-                <version>${maven-antrun-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>validate-builder</id>
@@ -278,7 +294,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
                 <configuration>
                     <skip>${rebuild.skip}</skip>
                 </configuration>
@@ -298,7 +313,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
-                <version>${properties-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>generate-maven-properties</id>
@@ -314,8 +328,14 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven-jar-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-jar</id>
@@ -328,7 +348,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>${maven-install-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-install</id>
@@ -341,7 +360,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>${exec-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>create-builder</id>
@@ -453,6 +471,20 @@
                 <intellij-idea.edition>U</intellij-idea.edition>
                 <image.tag.edition>ultimate</image.tag.edition>
             </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skipTests>false</skipTests>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>github-actions</id>

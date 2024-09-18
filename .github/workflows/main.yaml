@@ -48,11 +48,11 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and Push RC Community Image
         run: |
-          mvn clean install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,community,github-actions,skip-remove-builder
+          mvn clean install -B -Dimage.version=${IMAGE_VERSION} -Prc,community,github-actions,skip-remove-builder
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Test RC Community Image
         run: |
-          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,community,skip-rebuild
+          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,community,test,skip-rebuild
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Remove RC Community Image from local repository
         run: |
@@ -68,11 +68,11 @@ jobs:
             --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
       - name: Build and Push RC Ultimate Image
         run: |
-          mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,skip-remove-builder
+          mvn install -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,skip-remove-builder
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Test RC Ultimate Image
         run: |
-          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,skip-rebuild
+          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,test,skip-rebuild
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Remove RC Ultimate Image from local repository
         run: |
@@ -88,7 +88,7 @@ jobs:
             --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
       - name: Push Community Image
         run: |
-          mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Pcommunity,github-actions,skip-rebuild,skip-remove-builder
+          mvn install -B -Dimage.version=${IMAGE_VERSION} -Pcommunity,github-actions,skip-rebuild,skip-remove-builder
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Extract digest of Community Image
         id: digest-community
@@ -102,7 +102,7 @@ jobs:
           subject-digest: ${{ steps.digest-community.outputs.DIGEST }}
       - name: Push Ultimate Image
         run: |
-          mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Pultimate,github-actions,skip-rebuild,prune-builder
+          mvn install -B -Dimage.version=${IMAGE_VERSION} -Pultimate,github-actions,skip-rebuild,prune-builder
           df -h | grep -A 1 "Filesystem"; docker system df
       - name: Extract digest of Ultimate Image
         id: digest-ultimate
