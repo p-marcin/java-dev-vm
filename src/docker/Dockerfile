@@ -1,31 +1,8 @@
 # syntax=docker/dockerfile:labs
 ARG UBUNTU_VERSION=${ubuntu.version}
-ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
+ARG BUILDKIT_SBOM_SCAN_CONTEXT=${docker.buildx.build.sbom.scan.context}
 
 FROM ubuntu:${UBUNTU_VERSION} AS dependencies
-ARG KITTY_VERSION
-ARG DBEAVER_VERSION
-ARG POSTMAN_VERSION
-ARG KEYSTORE_EXPLORER_VERSION
-ARG GIT_FILTER_REPO_VERSION
-ARG GITHUB_CLI_VERSION
-ARG JDK_LTS_VERSION
-ARG JDK_STS_VERSION
-ARG MAVEN_VERSION
-ARG SPRING_BOOT_CLI_VERSION
-ARG ASYNC_PROFILER_VERSION
-ARG KAFKA_VERSION
-ARG SCALA_VERSION
-ARG NODE_VERSION
-ARG PNPM_VERSION
-ARG YARN_VERSION
-ARG GULP_CLI_VERSION
-ARG GO_VERSION
-ARG DOCKER_SCOUT_VERSION
-ARG KUBECTL_VERSION
-ARG KUBECTL_KREW_VERSION
-ARG K3D_VERSION
-ARG HELM_VERSION
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NOWARNINGS="yes"
 RUN echo "> Preparation..." \
@@ -34,47 +11,45 @@ RUN echo "> Preparation..." \
         && mkdir "/bash_completion.d" "/binaries" "/dev-tools" "/user-home" "/versions" \
     && echo "> Install Kitty..." \
         && mkdir "/dev-tools/kitty" \
-        && wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
+        && wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${kitty.version}/kitty-${kitty.version}-x86_64.txz" \
         && tar --extract --no-same-owner --directory="/dev-tools/kitty" --file="kitty.txz" "bin" "lib" \
     && echo "> Install DBeaver..." \
         && mkdir "/dev-tools/dbeaver" \
-        && wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${DBEAVER_VERSION}/dbeaver-ce-${DBEAVER_VERSION}-linux.gtk.x86_64-nojdk.tar.gz" \
+        && wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${dbeaver.version}/dbeaver-ce-${dbeaver.version}-linux.gtk.x86_64-nojdk.tar.gz" \
         && tar --extract --gzip --no-same-owner \
             --exclude="dbeaver/dbeaver-ce.desktop" \
             --exclude="dbeaver/readme" \
             --directory="/dev-tools/dbeaver" --strip-components=1 --file="dbeaver.tar.gz" \
     && echo "> Install Postman..." \
         && mkdir "/dev-tools/postman" \
-        && wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
+        && wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${postman.version}/linux64" \
         && tar --extract --gzip --no-same-owner --exclude="**/Postman" --directory="/dev-tools/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app" \
     && echo "> Install KeyStore Explorer..." \
         && mkdir "/dev-tools/keystore-explorer" \
-        && KEYSTORE_EXPLORER_VERSION_NO_DOTS=$(printf "${KEYSTORE_EXPLORER_VERSION}" | tr -d ".") \
-        && wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${KEYSTORE_EXPLORER_VERSION}/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}.zip" \
+        && KEYSTORE_EXPLORER_VERSION_NO_DOTS=$(printf "${keystore-explorer.version}" | tr -d ".") \
+        && wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${keystore-explorer.version}/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}.zip" \
         && unzip -q "kse.zip" -x "*.exe" "*.dll" -d "/tmp" \
         && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}"/* "/dev-tools/keystore-explorer" \
     && echo "> Install Git Filter-Repo..." \
-        && wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
-        && tar --extract --no-same-owner --directory="/binaries" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${GIT_FILTER_REPO_VERSION}/git-filter-repo" \
+        && wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${git-filter-repo.version}/git-filter-repo-${git-filter-repo.version}.tar.xz" \
+        && tar --extract --no-same-owner --directory="/binaries" --strip-components=1 --file="git-filter-repo.tar.xz" "git-filter-repo-${git-filter-repo.version}/git-filter-repo" \
         && chmod g-w,+x "/binaries/git-filter-repo" \
-        && printf "${GIT_FILTER_REPO_VERSION}\n" > "/versions/git-filter-repo.version" \
+        && printf "${git-filter-repo.version}\n" > "/versions/git-filter-repo.version" \
     && echo "> Install GitHub CLI..." \
-        && wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${GITHUB_CLI_VERSION}/gh_${GITHUB_CLI_VERSION}_linux_amd64.tar.gz" \
-        && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
+        && wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download/v${github-cli.version}/gh_${github-cli.version}_linux_amd64.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=2 --file="github-cli.tar.gz" "gh_${github-cli.version}_linux_amd64/bin/gh" \
         && chmod +x "/binaries/gh" \
         && /binaries/gh completion -s bash > "/bash_completion.d/gh" \
     && echo "> Install Java LTS..." \
-        && mkdir --parents "/dev-tools/java/${JDK_LTS_VERSION}" \
-        && JDK_LTS_MAJOR_VERSION=$(printf "${JDK_LTS_VERSION}" | sed "s/\..*//;s/-.*//") \
-        && JDK_LTS_VERSION_NO_SUFFIX=$(printf "${JDK_LTS_VERSION}" | sed "s/-.*//") \
-        && wget -q -O "java-lts.tar.gz" "https://download.oracle.com/java/${JDK_LTS_MAJOR_VERSION}/archive/jdk-${JDK_LTS_VERSION_NO_SUFFIX}_linux-x64_bin.tar.gz" \
-        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${JDK_LTS_VERSION}" --strip-components=1 --file="java-lts.tar.gz" \
+        && mkdir --parents "/dev-tools/java/${jdk-lts.version}-${jdk.distribution}" \
+        && JDK_LTS_MAJOR_VERSION=$(printf "${jdk-lts.version}" | sed "s/\..*//") \
+        && wget -q -O "java-lts.tar.gz" "https://download.oracle.com/java/${JDK_LTS_MAJOR_VERSION}/archive/jdk-${jdk-lts.version}_linux-x64_bin.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${jdk-lts.version}-${jdk.distribution}" --strip-components=1 --file="java-lts.tar.gz" \
     && echo "> Install Java STS..." \
-        && mkdir "/dev-tools/java/${JDK_STS_VERSION}" \
-        && JDK_STS_MAJOR_VERSION=$(printf "${JDK_STS_VERSION}" | sed "s/\..*//;s/-.*//") \
-        && JDK_STS_VERSION_NO_SUFFIX=$(printf "${JDK_STS_VERSION}" | sed "s/-.*//") \
-        && wget -q -O "java-sts.tar.gz" "https://download.oracle.com/java/${JDK_STS_MAJOR_VERSION}/archive/jdk-${JDK_STS_VERSION_NO_SUFFIX}_linux-x64_bin.tar.gz" \
-        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${JDK_STS_VERSION}" --strip-components=1 --file="java-sts.tar.gz" \
+        && mkdir "/dev-tools/java/${jdk-sts.version}-${jdk.distribution}" \
+        && JDK_STS_MAJOR_VERSION=$(printf "${jdk-sts.version}" | sed "s/\..*//") \
+        && wget -q -O "java-sts.tar.gz" "https://download.oracle.com/java/${JDK_STS_MAJOR_VERSION}/archive/jdk-${jdk-sts.version}_linux-x64_bin.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${jdk-sts.version}-${jdk.distribution}" --strip-components=1 --file="java-sts.tar.gz" \
     && echo "> Install SdkMan..." \
         && export SDKMAN_DIR="/dev-tools/sdkman" \
         && wget -q -O - "https://get.sdkman.io" | bash > /dev/null 2>&1 \
@@ -87,62 +62,62 @@ RUN echo "> Preparation..." \
         && sed --in-place 's/\bfind\b/find -L/g' "${SDKMAN_DIR}/bin/sdkman-init.sh" "${SDKMAN_DIR}/src/sdkman-upgrade.sh" "${SDKMAN_DIR}/src/sdkman-list.sh" \
         && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
     && echo \"> Install Maven...\" \
-        && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null 2>&1 \
+        && sdk install \"maven\" \"${maven.version}\" > /dev/null 2>&1 \
     && echo \"> Install Spring Boot CLI...\" \
-        && sdk install \"springboot\" \"${SPRING_BOOT_CLI_VERSION}\" > /dev/null 2>&1 \
+        && sdk install \"springboot\" \"${spring-boot-cli.version}\" > /dev/null 2>&1 \
         && sdk flush > /dev/null" \
     && echo "> Install Async Profiler..." \
         && mkdir "/dev-tools/async-profiler" \
-        && wget -q -O "async-profiler.tar.gz" "https://github.com/async-profiler/async-profiler/releases/download/v${ASYNC_PROFILER_VERSION}/async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64.tar.gz" \
+        && wget -q -O "async-profiler.tar.gz" "https://github.com/async-profiler/async-profiler/releases/download/v${async-profiler.version}/async-profiler-${async-profiler.version}-linux-x64.tar.gz" \
         && tar --extract --gzip --no-same-owner \
             --directory="/dev-tools/async-profiler" --strip-components=1 --file="async-profiler.tar.gz" \
-            "async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64/bin" \
-            "async-profiler-${ASYNC_PROFILER_VERSION}-linux-x64/lib" \
+            "async-profiler-${async-profiler.version}-linux-x64/bin" \
+            "async-profiler-${async-profiler.version}-linux-x64/lib" \
     && echo "> Install Kafka..." \
         && mkdir "/dev-tools/kafka" \
-        && wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+        && wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${kafka.version}/kafka_${scala.version}-${kafka.version}.tgz" \
         && tar --extract --gzip --no-same-owner \
-            --exclude="kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin/windows" \
+            --exclude="kafka_${scala.version}-${kafka.version}/bin/windows" \
             --directory="/dev-tools/kafka" --strip-components=1 --file="kafka.tar.gz" \
-            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin" \
-            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
-            "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs" \
+            "kafka_${scala.version}-${kafka.version}/bin" \
+            "kafka_${scala.version}-${kafka.version}/config" \
+            "kafka_${scala.version}-${kafka.version}/libs" \
     && echo "> Install Node..." \
         && mkdir "/dev-tools/node" \
-        && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+        && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${node.version}/node-v${node.version}-linux-x64.tar.xz" \
         && tar --extract --no-same-owner --directory="/dev-tools/node" --strip-components=1 --file="node.tar.xz" \
-            "node-v${NODE_VERSION}-linux-x64/bin" \
-            "node-v${NODE_VERSION}-linux-x64/include" \
-            "node-v${NODE_VERSION}-linux-x64/lib" \
+            "node-v${node.version}-linux-x64/bin" \
+            "node-v${node.version}-linux-x64/include" \
+            "node-v${node.version}-linux-x64/lib" \
         && export PATH="/dev-tools/node/bin:${PATH}" \
         && npm completion bash > "/bash_completion.d/npm" \
     && echo "> Install Pnpm/Yarn..." \
         && mkdir "/dev-tools/node/.cache" \
         && corepack enable \
-        && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
+        && corepack install --global pnpm@${pnpm.version} yarn@${yarn.version} > /dev/null \
         && mv "/root/.cache/node/corepack" "/dev-tools/node/.cache" \
         && pnpm completion bash > "/bash_completion.d/pnpm" 2> /dev/null \
         && printf "enableTelemetry: 0\n" > "/user-home/.yarnrc.yml" \
     && echo "> Install Gulp CLI..." \
-        && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
+        && npm install --silent --global gulp-cli@${gulp-cli.version} \
         && rm -r "/dev-tools/node/share" \
     && echo "> Install Go..." \
         && mkdir --parents "/dev-tools/go" "/user-home/.config/go/telemetry" \
-        && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+        && wget -q -O "go.tar.gz" "https://go.dev/dl/go${go.version}.linux-amd64.tar.gz" \
         && tar --extract --gzip --no-same-owner --directory="/dev-tools/go" --strip-components=1 --file="go.tar.gz" \
         && printf "off\n" > "/user-home/.config/go/telemetry/mode" \
     && echo "> Install Docker Scout..." \
         && mkdir --parents "/docker/cli-plugins" \
-        && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
+        && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${docker-scout.version}/docker-scout_${docker-scout.version}_linux_amd64.tar.gz" \
         && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
         && chmod +x "/docker/cli-plugins/docker-scout" \
     && echo "> Install Kubectl..." \
-        && wget -q -O "/binaries/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+        && wget -q -O "/binaries/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${kubectl.version}/bin/linux/amd64/kubectl" \
         && chmod +x "/binaries/kubectl" \
         && /binaries/kubectl completion bash > "/bash_completion.d/kubectl" \
     && echo "> Install Kubectl Krew..." \
         && mkdir --parents "/dev-tools/krew/store" "/dev-tools/krew/receipts" "/user-home/.krew" \
-        && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
+        && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${kubectl-krew.version}/krew-linux_amd64.tar.gz" \
         && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
         && /tmp/krew-linux_amd64 install krew > /dev/null 2>&1 \
         && mv "/root/.krew/store/krew" "/dev-tools/krew/store" \
@@ -150,11 +125,11 @@ RUN echo "> Preparation..." \
         && mv "/root/.krew/receipts"/* "/dev-tools/krew/receipts" \
         && mv "/root/.krew"/* "/user-home/.krew" \
     && echo "> Install K3d..." \
-        && wget -q -O "/binaries/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
+        && wget -q -O "/binaries/k3d" "https://github.com/k3d-io/k3d/releases/download/v${k3d.version}/k3d-linux-amd64" \
         && chmod +x "/binaries/k3d" \
         && /binaries/k3d completion bash > "/bash_completion.d/k3d" \
     && echo "> Install Helm..." \
-        && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
+        && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${helm.version}-linux-amd64.tar.gz" \
         && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
         && chmod +x "/binaries/helm" \
         && /binaries/helm completion bash > "/bash_completion.d/helm"
@@ -166,7 +141,6 @@ COPY --chmod=644                                                        yad-pane
 
 FROM ubuntu:${UBUNTU_VERSION} AS intellij-idea
 ARG INTELLIJ_IDEA_EDITION
-ARG INTELLIJ_IDEA_VERSION
 ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NOWARNINGS="yes"
 RUN echo "> Preparation..." \
@@ -174,14 +148,11 @@ RUN echo "> Preparation..." \
         && apt-get install -y --no-install-recommends ca-certificates wget > /dev/null \
     && echo "> Install IntelliJ IDEA..." \
         && mkdir "/intellij-idea" \
-        && wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
+        && wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${intellij-idea.version}.tar.gz" \
         && tar --extract --gzip --no-same-owner --directory="/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz" \
         && if [ -d "/intellij-idea/help" ]; then rm -r "/intellij-idea/help"; fi
 
 FROM ubuntu:${UBUNTU_VERSION} AS main
-ARG JAVA_DEV_VM_VERSION
-ARG GIT_REVISION
-ARG UID=1001
 ENV USER=${image.user} \
     DISPLAY=${image.display} \
     DEBIAN_FRONTEND=noninteractive \
@@ -195,7 +166,7 @@ LABEL org.opencontainers.image.authors="https://github.com/${repo.owner}" \
       org.opencontainers.image.source="https://github.com/${repo.owner}/${image.name}" \
       org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${image.name}" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.revision="${GIT_REVISION}"
+      org.opencontainers.image.revision="${git.revision}"
 RUN echo "> Install packages..." \
         && apt-get -qq update -y \
         && apt-get install -y --no-install-recommends \
@@ -281,7 +252,7 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         && systemctl set-default multi-user.target > /dev/null 2>&1 \
         && systemctl mask dev-hugepages.mount sys-fs-fuse-connections.mount network.service > /dev/null 2>&1 \
     && echo "> Setup ${USER} user..." \
-        && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
+        && useradd --uid ${image.user.uid} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
         && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
     && echo "> Remove ubuntu user's home directory..." \
         && usermod --home "/nonexistent" ubuntu \
@@ -297,7 +268,7 @@ fi\n" >> "/home/${USER}/.bashrc" \
 fi\n" >> "/root/.bashrc" \
     && echo "> Create ${image.name}.version file..." \
         && mkdir "/etc/versions" \
-        && printf "${JAVA_DEV_VM_VERSION}\n" > "/etc/versions/${image.name}.version" \
+        && printf "${image.version}\n" > "/etc/versions/${image.name}.version" \
     && echo "> Cleanup..." \
         && apt-get -qq autoremove -y --purge \
         && apt-get -qq clean -y \
@@ -321,8 +292,6 @@ COPY --from=dependencies                            /yad-panel/config           
 COPY --chmod=644                                    home-config/.root_environment   /root/.environment
 COPY --chmod=644                                    docker-config                   /etc/docker/
 COPY --chmod=644                                    yad-panel/service               /etc/systemd/system/
-ARG JDK_LTS_VERSION
-ARG VIRTUALENV_VERSION
 RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-user.js \
     echo "> Configure Firefox profile..." \
         && sudo -u ${USER} firefox --headless -CreateProfile ${USER} > /dev/null 2>&1 \
@@ -346,7 +315,7 @@ RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-use
     && echo "> Configure Git..." \
         && sudo -u ${USER} git config --global "init.defaultBranch" "main" \
     && echo "> Configure Java LTS..." \
-        && ln --symbolic "${JDK_LTS_VERSION}" "/opt/java/current" \
+        && ln --symbolic "${jdk-lts.version}-${jdk.distribution}" "/opt/java/current" \
     && echo "> Configure SdkMan..." \
         && mkdir --parents "/home/${USER}/.sdkman/candidates" \
         && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \
@@ -362,7 +331,7 @@ RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-use
         && mkdir --parents "/home/${USER}/.cache/node" \
         && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
     && echo "> Install VirtualEnv..." \
-        && sudo -u ${USER} pipx install virtualenv==${VIRTUALENV_VERSION} > /dev/null 2>&1 \
+        && sudo -u ${USER} pipx install virtualenv==${virtualenv.version} > /dev/null 2>&1 \
         && mkdir "/opt/pipx" \
         && chown "${USER}":"${USER}" "/opt/pipx" \
         && mv "/home/${USER}/.local/share/pipx/venvs/virtualenv" "/opt/pipx" \
