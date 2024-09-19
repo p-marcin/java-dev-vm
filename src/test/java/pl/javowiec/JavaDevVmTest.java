@@ -7,7 +7,9 @@ import static pl.javowiec.util.FileProperties.MAVEN;
 
 import java.io.IOException;
 
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -20,6 +22,7 @@ import pl.javowiec.util.CommandExecutor;
  * Java DEV VM Tests
  */
 @Testcontainers
+@TestMethodOrder(MethodOrderer.MethodName.class)
 class JavaDevVmTest {
 
     private static final String IMAGE_TAG = MAVEN.getProperty("image.namespace")
@@ -331,6 +334,12 @@ class JavaDevVmTest {
         commandExecutor.assertExecutablePathEquals("helm", "/usr/local/bin/helm");
         commandExecutor.assertPathExists("/etc/bash_completion.d/helm");
         commandExecutor.assertVersionEquals("helm.version", "helm version --template=\"Version: {{.Version}}\" | sed \"s/.*v//\"");
+    }
+
+    @Test
+    void versionsOutput() throws IOException, InterruptedException {
+        commandExecutor.assertCommandOutputEquals("Versions saved to: /tmp/versions.md", "versions -o");
+        JAVA_DEV_VM.copyFileFromContainer("/tmp/versions.md", MAVEN.getProperty("project.build.directory") + "/versions-" + MAVEN.getProperty("image.tag.edition") + ".md");
     }
 
 }
