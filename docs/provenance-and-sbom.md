@@ -13,13 +13,13 @@ Attestations, and confirms that the Attestation refers to provided Docker Image.
 Verify Attestation with the following command:
 
 ```shell
-gh attestation verify oci://docker.io/javowiec/java-dev-vm:XX.XX.X-community --owner P-Marcin
+gh attestation verify oci://docker.io/javowiec/java-dev-vm:XX.XX.X-community --owner p-marcin
 ```
 
 ![GH Attestation Verify](images/gh-atestation-verify.png)
 
 The Attestation Verification is also scheduled
-here: https://github.com/P-Marcin/java-dev-vm/actions/workflows/attestation-verification.yaml
+here: https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yaml
 
 ## :pushpin: Verify Provenance attached to the image
 

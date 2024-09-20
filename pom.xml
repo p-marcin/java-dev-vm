@@ -103,7 +103,7 @@
         <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=false</docker.buildx.build.sbom.scan.context>
         <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
-        <repo.owner>P-Marcin</repo.owner>
+        <repo.owner>p-marcin</repo.owner>
         <image.namespace>javowiec</image.namespace>
         <image.name>${project.artifactId}</image.name>
         <image.version>${project.version}</image.version>
