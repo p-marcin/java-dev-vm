@@ -13,8 +13,8 @@ fi
 if [[ ":${PATH}:" != *":/opt/node/bin:"* ]]; then
     export PATH="/opt/node/bin:${PATH}"
 fi
-if [[ ":${PATH}:" != *":/usr/local/go/bin:"* ]]; then
-    export PATH="/usr/local/go/bin:${PATH}"
+if [[ ":${PATH}:" != *":/opt/go/bin:"* ]]; then
+    export PATH="/opt/go/bin:${PATH}"
 fi
 if [[ ":${PATH}:" != *":${GOPATH}/bin:"* ]]; then
     export PATH="${GOPATH}/bin:${PATH}"
