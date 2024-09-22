@@ -7,6 +7,19 @@ export XDG_RUNTIME_DIR="/opt/xdg-runtime-dir-${UID}"
 # \[\033[01;33m\]$(__git_ps1 "(%s)")\[\033[00m\]
 export PS1='\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\[\033[01;33m\]$(__git_ps1 "(%s)")\[\033[00m\]\$ '
 
+if [[ ":${PATH}:" != *":${HOME}/.krew/bin:"* ]]; then
+    export PATH="${HOME}/.krew/bin:${PATH}"
+fi
+if [[ ":${PATH}:" != *":/opt/kafka/bin:"* ]]; then
+    export PATH="/opt/kafka/bin:${PATH}"
+fi
+if [[ ":${PATH}:" != *":/opt/node/bin:"* ]]; then
+    export PATH="/opt/node/bin:${PATH}"
+fi
+
+export DISPLAY="${image.display}"
+export XDG_RUNTIME_DIR="/opt/xdg-runtime-dir-${UID}"
+
 #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="/opt/sdkman"
 [[ -s "/opt/sdkman/bin/sdkman-init.sh" ]] && source "/opt/sdkman/bin/sdkman-init.sh"
