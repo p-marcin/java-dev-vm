@@ -6,7 +6,7 @@ on:
     types:
       - completed
   schedule:
-    - cron: "30 3,15 * * *"
+    - cron: "30 5 * * *"
 
 jobs:
   main:
@@ -25,11 +25,9 @@ jobs:
       - name: Generate Workflow Stats
         run: |
           echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
-          echo "| Tool | Version |" >> ${GITHUB_STEP_SUMMARY}
-          echo "| --- | --- |" >> ${GITHUB_STEP_SUMMARY}
-          echo "| GitHub CLI | $(gh --version | grep gh | sed "s/.*version //;s/ (.*//") |" >> ${GITHUB_STEP_SUMMARY}
+          echo "- GitHub CLI **$(gh --version | grep gh | sed "s/.*version //;s/ (.*//")**" >> ${GITHUB_STEP_SUMMARY}
           echo "### More information" >> ${GITHUB_STEP_SUMMARY}
-          echo "* [Verifying Provenance and SBOM Attestations](https://github.com/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}/blob/main/docs/provenance-and-sbom.md)" >> ${GITHUB_STEP_SUMMARY}
+          echo "- [Verifying Provenance and SBOM Attestations](https://github.com/${GITHUB_REPOSITORY_OWNER}/${IMAGE_NAME}/blob/main/docs/provenance-and-sbom.md)" >> ${GITHUB_STEP_SUMMARY}
       - name: Verify Community Image
         run: |
           gh attestation verify oci://docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community --owner "${GITHUB_REPOSITORY_OWNER}"
@@ -40,7 +38,7 @@ jobs:
       - name: Verify SBOM attached to Community Image
         run: |
           docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community \
-            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
+            --format "{{ json .SBOM.SPDX }}" | grep -q "/opt/java"
       - name: Verify Ultimate Image
         run: |
           gh attestation verify oci://docker.io/${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
@@ -51,4 +49,4 @@ jobs:
       - name: Verify SBOM attached to Ultimate Image
         run: |
           docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate \
-            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
+            --format "{{ json .SBOM.SPDX }}" | grep -q "/opt/java"

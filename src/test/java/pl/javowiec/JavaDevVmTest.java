@@ -28,8 +28,8 @@ class JavaDevVmTest {
     private static final String IMAGE_TAG = MAVEN.getProperty("image.namespace")
             + "/" + MAVEN.getProperty("image.name")
             + ":" + MAVEN.getProperty("image.version")
-            + "-" + MAVEN.getProperty("image.tag.rc")
-            + MAVEN.getProperty("image.tag.edition");
+            + "-" + MAVEN.getProperty("image.tag.edition")
+            + MAVEN.getProperty("image.tag.ea");
 
     @Container
     private static final GenericContainer<?> JAVA_DEV_VM = new GenericContainer<>(DockerImageName.parse(IMAGE_TAG))

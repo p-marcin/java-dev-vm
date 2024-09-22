@@ -1,0 +1,130 @@
+name: Build, Test and Push Images
+
+on: workflow_dispatch
+
+jobs:
+  main:
+    name: Build, Test and Push Images
+    runs-on: ubuntu-latest
+    permissions:
+      attestations: write
+      contents: write
+      id-token: write
+    steps:
+      - name: Prune Docker
+        run: docker system prune --all --volumes --force
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Extract properties
+        run: |
+          echo "JDK_LTS_VERSION=$(mvn help:evaluate -Dexpression=jdk-lts.version -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "JDK_DISTRIBUTION=$(mvn help:evaluate -Dexpression=jdk.distribution -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "IMAGE_NAMESPACE=$(mvn help:evaluate -Dexpression=image.namespace -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "IMAGE_NAME=$(mvn help:evaluate -Dexpression=image.name -q -DforceStdout)" >> ${GITHUB_ENV}
+          echo "IMAGE_VERSION=$(mvn help:evaluate -Dexpression=image.version -q -DforceStdout)" >> ${GITHUB_ENV}
+      - name: Set up Oracle JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JDK_LTS_VERSION }}
+          distribution: ${{ env.JDK_DISTRIBUTION }}
+          cache: maven
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        id: setup-docker-buildx
+      - name: Generate Workflow Stats
+        run: |
+          echo "### Workflow Stats" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Java **$(java --version | grep "java" | sed "s/java //;s/ .*//")**" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Maven **$(mvn --version | grep "Apache Maven" | sed "s/.*Maven //;s/ (.*//")**" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Docker Client **$(docker version --format "{{.Client.Version}}")**" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Docker Server **$(docker version --format "{{.Server.Version}}")**" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Docker Buildx **$(docker buildx version | sed "s/.* v//;s/ .*//")**" >> ${GITHUB_STEP_SUMMARY}
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and Push EA Community Image
+        run: |
+          mvn clean install -B -Dbuilder.name=${{ steps.setup-docker-buildx.outputs.name }} -Pea,community,github-actions,skip-remove-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Test EA Community Image
+        run: |
+          mvn test -B -Pea,community,integration-tests,skip-rebuild
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Remove EA Community Image from local repository
+        run: |
+          docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community-ea
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Verify Provenance attached to EA Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community-ea \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to EA Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community-ea \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "/opt/java"
+      - name: Build and Push EA Ultimate Image
+        run: |
+          mvn install -B -Dbuilder.name=${{ steps.setup-docker-buildx.outputs.name }} -Pea,ultimate,github-actions,skip-rebuild,skip-remove-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Test EA Ultimate Image
+        run: |
+          mvn test -B -Pea,ultimate,integration-tests,skip-rebuild
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Remove EA Ultimate Image from local repository
+        run: |
+          docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate-ea
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Verify Provenance attached to EA Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate-ea \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to EA Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate-ea \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "/opt/java"
+      - name: Test EA Community and EA Ultimate versions
+        run: diff -q target/versions-community.md target/versions-ultimate.md
+      - name: Push Community Image
+        run: |
+          mvn install -B -Dbuilder.name=${{ steps.setup-docker-buildx.outputs.name }} -Pcommunity,github-actions,skip-rebuild,skip-remove-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Extract digest of Community Image
+        id: digest-community
+        run: |
+          digest=$(docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-community --format "{{ json .Manifest.Digest }}" | jq -r)
+          echo "DIGEST=${digest}" >> ${GITHUB_OUTPUT}
+      - name: Attest Provenance of Community Image
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: index.docker.io/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.digest-community.outputs.DIGEST }}
+      - name: Push Ultimate Image
+        run: |
+          mvn install -B -Dbuilder.name=${{ steps.setup-docker-buildx.outputs.name }} -Pultimate,github-actions,skip-rebuild,prune-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Extract digest of Ultimate Image
+        id: digest-ultimate
+        run: |
+          digest=$(docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-ultimate --format "{{ json .Manifest.Digest }}" | jq -r)
+          echo "DIGEST=${digest}" >> ${GITHUB_OUTPUT}
+      - name: Attest Provenance of Ultimate Image
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: index.docker.io/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}
+          subject-digest: ${{ steps.digest-ultimate.outputs.DIGEST }}
+      - name: Prepare JReleaser changelog template
+        run: printf "## Changelog\n\n{{changelogChanges}}{{changelogContributors}}\n%s" "$(cat target/versions-community.md)" > "target/changelog.tpl"
+      - name: Run JReleaser
+        uses: jreleaser/release-action@v2
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PROJECT_VERSION: ${{ env.IMAGE_VERSION }}
+        with:
+          # @Patch jreleaser: To be removed once v1.15.0 is released
+          version: early-access
+          arguments: release
+          setup-java: false

@@ -19,7 +19,7 @@ gh attestation verify oci://docker.io/javowiec/java-dev-vm:XX.XX.X-community --o
 ![GH Attestation Verify](images/gh-atestation-verify.png)
 
 The Attestation Verification is also scheduled
-here: https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yaml
+here: https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yml
 
 ## :pushpin: Verify Provenance attached to the image
 

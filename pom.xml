@@ -82,7 +82,7 @@
         <image.namespace>javowiec</image.namespace>
         <image.name>${project.artifactId}</image.name>
         <image.version>${project.version}</image.version>
-        <image.tag.rc/>
+        <image.tag.ea/>
         <image.target>${project.build.directory}/docker</image.target>
         <repo.owner>p-marcin</repo.owner>
 
@@ -272,21 +272,21 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>update-batch-scripts</id>
+                        <id>update-source-files</id>
                         <phase>process-resources</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
                         <configuration>
                             <target>
-                                <replaceregexp file="batch-scripts/restart.bat"
-                                               match="imageVersion=(.*)"
-                                               replace="imageVersion=${image.version}-community"
-                                               byline="true"/>
-                                <replaceregexp file="batch-scripts/restart.bat"
-                                               match="imageName=(.*)"
-                                               replace="imageName=${image.name}"
-                                               byline="true"/>
+                                <replaceregexp file="batch-scripts/restart.bat" byline="true"
+                                               match="imageVersion=(.*)" replace="imageVersion=${image.version}-community"/>
+                                <replaceregexp file="batch-scripts/restart.bat" byline="true"
+                                               match="imageName=(.*)" replace="imageName=${image.name}"/>
+                                <replaceregexp file="jreleaser.yml" byline="true"
+                                               match="project.name: (.*)" replace="project.name: ${image.name}"/>
+                                <replaceregexp file="jreleaser.yml" byline="true"
+                                               match="repo.owner: (.*)" replace="repo.owner: ${repo.owner}"/>
                             </target>
                         </configuration>
                     </execution>
@@ -399,7 +399,7 @@
                                 <argument>${docker.buildx.build.sbom}</argument>
                                 <argument>--build-arg=BUILD_TIMESTAMP=${build.timestamp}</argument>
                                 <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
-                                <argument>--tag=${image.namespace}/${image.name}:${image.version}-${image.tag.rc}${image.tag.edition}</argument>
+                                <argument>--tag=${image.namespace}/${image.name}:${image.version}-${image.tag.edition}${image.tag.ea}</argument>
                                 <argument>${image.target}</argument>
                             </arguments>
                         </configuration>
@@ -445,7 +445,7 @@
             </properties>
         </profile>
         <profile>
-            <id>test</id>
+            <id>integration-tests</id>
             <build>
                 <plugins>
                     <plugin>
@@ -463,14 +463,14 @@
             <properties>
                 <docker.buildx.build.output>--output=type=image,push=true</docker.buildx.build.output>
                 <docker.buildx.build.provenance>--provenance=true</docker.buildx.build.provenance>
-                <docker.buildx.build.sbom>--attest=type=sbom,generator=docker/scout-sbom-indexer:latest</docker.buildx.build.sbom>
+                <docker.buildx.build.sbom>--attest=type=sbom</docker.buildx.build.sbom>
                 <docker.buildx.build.sbom.scan.context>true</docker.buildx.build.sbom.scan.context>
             </properties>
         </profile>
         <profile>
-            <id>rc</id>
+            <id>ea</id>
             <properties>
-                <image.tag.rc>rc-</image.tag.rc>
+                <image.tag.ea>-ea</image.tag.ea>
             </properties>
         </profile>
         <profile>

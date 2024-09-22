@@ -16,11 +16,11 @@
       <img src="https://img.shields.io/github/license/p-marcin/java-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
   <br>
-  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
+  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/main.yml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/main.yml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
   </a>
-  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
+  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/attestation-verification.yml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
   </a>
 </p>
 

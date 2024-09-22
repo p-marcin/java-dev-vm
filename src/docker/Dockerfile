@@ -143,7 +143,8 @@ COPY --chmod=644                                                        yad-pane
 FROM ubuntu:${UBUNTU_VERSION} AS intellij-idea
 ARG INTELLIJ_IDEA_EDITION
 ENV DEBIAN_FRONTEND=noninteractive \
-    DEBCONF_NOWARNINGS="yes"
+    DEBCONF_NOWARNINGS="yes" \
+    NO_AT_BRIDGE=1
 RUN echo "> Preparation..." \
         && apt-get -qq update -y \
         && apt-get install -y --no-install-recommends ca-certificates wget > /dev/null \
@@ -157,7 +158,8 @@ FROM ubuntu:${UBUNTU_VERSION} AS main
 ENV USER=${image.user} \
     DISPLAY=${image.display} \
     DEBIAN_FRONTEND=noninteractive \
-    DEBCONF_NOWARNINGS="yes"
+    DEBCONF_NOWARNINGS="yes" \
+    NO_AT_BRIDGE=1
 LABEL org.opencontainers.image.authors="https://github.com/${repo.owner}" \
       org.opencontainers.image.vendor="${repo.owner}" \
       org.opencontainers.image.title="${image.namespace}/${image.name}" \
