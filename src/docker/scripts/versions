@@ -7,6 +7,48 @@ set -o pipefail # DON'T HIDE ERRORS WITHIN PIPES
 # CONSTANTS
 readonly ARGS=( "${@}" )
 readonly SEPARATOR=$(printf "%.s#" {1..75})
+readonly OUTPUT_FILE="/tmp/versions.md"
+readonly -A EXCLUDE_IN_OUTPUT_MODE=(["JAVA DEV VM"]=1 ["KERNEL"]=1 ["DOCKER SERVER"]=1 ["KUBECTL SERVER"]=1)
+readonly -A ICONS_IN_OUTPUT_MODE=(["SYSTEM"]=":computer:" ["APPS"]=":bulb:" ["VERSION CONTROL SYSTEM"]=":herb:" \
+  ["JAVA"]=":coffee:" ["JAVASCRIPT"]=":electron:" ["PYTHON"]=":snake:" ["CLOUD"]=":cloud:")
+readonly -A URLS_IN_OUTPUT_MODE=(["UBUNTU"]="https://wiki.ubuntu.com/Releases" \
+  ["KITTY TERMINAL"]="https://github.com/kovidgoyal/kitty/releases" \
+  ["FIREFOX"]="https://www.mozilla.org/en-US/firefox/releases/" \
+  ["BETTERFOX"]="https://github.com/yokoffing/Betterfox/releases" \
+  ["INTELLIJ IDEA"]="https://www.jetbrains.com/idea/whatsnew/" \
+  ["DBEAVER"]="https://github.com/dbeaver/dbeaver/releases" \
+  ["POSTMAN"]="https://www.postman.com/release-notes/postman-app/" \
+  ["KEYSTORE EXPLORER"]="https://github.com/kaikramer/keystore-explorer/releases" \
+  ["GIT"]="https://git-scm.com/downloads" \
+  ["GIT LFS"]="https://github.com/git-lfs/git-lfs/releases" \
+  ["GIT FILTER-REPO"]="https://github.com/newren/git-filter-repo/releases" \
+  ["GITHUB CLI"]="https://github.com/cli/cli/releases" \
+  ["JAVA LTS"]="https://www.java.com/releases/" \
+  ["JAVA STS"]="https://www.java.com/releases/" \
+  ["SDKMAN"]="https://github.com/sdkman/sdkman-cli/releases" \
+  ["MAVEN"]="https://maven.apache.org/docs/history.html" \
+  ["SPRING BOOT CLI"]="https://github.com/spring-projects/spring-boot/releases" \
+  ["ASYNC PROFILER"]="https://github.com/async-profiler/async-profiler/releases" \
+  ["KAFKA"]="https://kafka.apache.org/downloads" \
+  ["NODE"]="https://github.com/nodejs/node/releases" \
+  ["COREPACK"]="https://github.com/nodejs/corepack/releases" \
+  ["NPM"]="https://github.com/npm/cli/releases" \
+  ["PNPM"]="https://github.com/pnpm/pnpm/releases" \
+  ["YARN"]="https://github.com/yarnpkg/berry/releases" \
+  ["GULP CLI"]="https://github.com/gulpjs/gulp-cli/releases" \
+  ["PYTHON"]="https://docs.python.org/3/whatsnew/changelog.html" \
+  ["PIPX"]="https://github.com/pypa/pipx/releases" \
+  ["VIRTUALENV"]="https://github.com/pypa/virtualenv/releases" \
+  ["GO"]="https://go.dev/doc/devel/release" \
+  ["DOCKER"]="https://github.com/moby/moby/releases" \
+  ["DOCKER BUILDX"]="https://github.com/docker/buildx/releases" \
+  ["DOCKER COMPOSE"]="https://github.com/docker/compose/releases" \
+  ["DOCKER SCOUT"]="https://github.com/docker/scout-cli/releases" \
+  ["KUBECTL"]="https://github.com/kubernetes/kubernetes/releases" \
+  ["KUBECTL KREW"]="https://github.com/kubernetes-sigs/krew/releases" \
+  ["K3D"]="https://github.com/k3d-io/k3d/releases" \
+  ["K3S"]="https://github.com/k3s-io/k3s/releases" \
+  ["HELM"]="https://github.com/helm/helm/releases")
 # COLORS
 readonly RESET="\033[0m"
 readonly GREEN="\033[1;32m"
@@ -14,12 +56,14 @@ readonly YELLOW="\033[1;33m"
 
 main() {
   options "${ARGS[@]}"
+  logTitle
   logSection "SYSTEM"
   logVersion "JAVA DEV VM" "$(getJavaDevVmVersion)"
   logVersion "UBUNTU" "$(getUbuntuVersion)"
   logVersion "KERNEL" "$(getKernelVersion)"
   logVersion "KITTY TERMINAL" "$(getKittyVersion)"
   logVersion "FIREFOX" "$(getFirefoxVersion)"
+  logVersion "BETTERFOX" "$(getBetterfoxVersion)"
   logSection "APPS"
   logVersion "INTELLIJ IDEA" "$(getIntellijIdeaVersion)"
   logVersion "DBEAVER" "$(getDBeaverVersion)"
@@ -61,12 +105,17 @@ main() {
   logVersion "KUBECTL KREW" "$(getKubectlKrewVersion)"
   logVersion "K3D" "$(getK3dVersion)"
   logVersion "HELM" "$(getHelmVersion)"
-  logSeparator
+  if [[ "${OUTPUT_MODE}" != "true" ]]; then
+    logSeparator
+  else
+    printf "Versions saved to: %s\n" "${OUTPUT_FILE}"
+  fi
 }
 
 options() {
   while (( ${#} > 0 )); do
     case "${1}" in
+      -o | --output) readonly OUTPUT_MODE="true";;
       *) help;;
     esac
     shift
@@ -82,32 +131,66 @@ EOF
   exit 1
 }
 
+logTitle() {
+  if [[ "${OUTPUT_MODE}" == "true" ]]; then
+    printf "## Versions\n" > "${OUTPUT_FILE}"
+  fi
+}
+
 logSection() {
   local sectionName="${1}"
-  logSeparator
-  printf "%b#%b %b%-71s%b %b#%b\n" \
-    "${YELLOW}" "${RESET}" \
-    "${GREEN}" "${sectionName}" "${RESET}"\
-    "${YELLOW}" "${RESET}"
-  logSeparator
+  if [[ "${OUTPUT_MODE}" == "true" ]]; then
+    printf "\n| %s | %s |\n" "${sectionName}" "${ICONS_IN_OUTPUT_MODE[${sectionName}]}" >> "${OUTPUT_FILE}"
+    logSeparator
+  else
+    logSeparator
+    printf "%b#%b %b%-71s%b %b#%b\n" \
+      "${YELLOW}" "${RESET}" \
+      "${GREEN}" "${sectionName}" "${RESET}"\
+      "${YELLOW}" "${RESET}"
+    logSeparator
+  fi
 }
 
 logSeparator() {
-  printf "%b%s%b\n" "${YELLOW}" "${SEPARATOR}" "${RESET}"
+  if [[ "${OUTPUT_MODE}" == "true" ]]; then
+    printf "| --- | --- |\n" >> "${OUTPUT_FILE}"
+  else
+    printf "%b%s%b\n" "${YELLOW}" "${SEPARATOR}" "${RESET}"
+  fi
 }
 
 logVersion() {
-  printf "%b|%b %-28s %b|%b %-40s %b|%b\n" \
-    "${YELLOW}" "${RESET}" \
-    "${1}" \
-    "${YELLOW}" "${RESET}" \
-    "${2}" \
-    "${YELLOW}" "${RESET}"
+  local dependency="${1}"
+  if [[ "${OUTPUT_MODE}" == "true" ]]; then
+    if [[ ! ${EXCLUDE_IN_OUTPUT_MODE[${1}]} ]]; then
+      if [[ "${dependency}" == *" CLIENT" ]]; then
+        dependency="${dependency% CLIENT}"
+      fi
+      if [[ ${URLS_IN_OUTPUT_MODE[${dependency}]} ]]; then
+        if [[ "${dependency}" == "K3D" ]]; then
+          printf "| [%s](%s) ([K3S](%s)) | **%s** |\n" "${dependency}" "${URLS_IN_OUTPUT_MODE[${dependency}]}" "${URLS_IN_OUTPUT_MODE['K3S']}" "${2}" >> "${OUTPUT_FILE}"
+        else
+          printf "| [%s](%s) | **%s** |\n" "${dependency}" "${URLS_IN_OUTPUT_MODE[${dependency}]}" "${2}" >> "${OUTPUT_FILE}"
+        fi
+      else
+        printf "| %s | **%s** |\n" "${dependency}" "${2}" >> "${OUTPUT_FILE}"
+      fi
+    fi
+  else
+    printf "%b|%b %-28s %b|%b %-40s %b|%b\n" \
+      "${YELLOW}" "${RESET}" \
+      "${dependency}" \
+      "${YELLOW}" "${RESET}" \
+      "${2}" \
+      "${YELLOW}" "${RESET}"
+  fi
 }
 
 getJavaDevVmVersion() {
-  [[ -f "/etc/versions/${image.name}.version" ]] \
-    && cat "/etc/versions/${image.name}.version"
+  if [[ -f "/etc/versions/${image.name}.version" ]]; then
+    cat "/etc/versions/${image.name}.version"
+  fi
 }
 
 getUbuntuVersion() {
@@ -119,68 +202,87 @@ getKernelVersion() {
 }
 
 getKittyVersion() {
-  isPackageInstalled "kitty" \
-    && kitty --version | sed "s/kitty //;s/ .*//"
+  if isPackageInstalled "kitty"; then
+    kitty --version | sed "s/kitty //;s/ .*//"
+  fi
 }
 
 getFirefoxVersion() {
-  isPackageInstalled "firefox" \
-    && firefox --version | sed "s/.* //"
+  if isPackageInstalled "firefox"; then
+    firefox --version | sed "s/.* //"
+  fi
+}
+
+getBetterfoxVersion() {
+  if grep -q "\* Betterfox" "${HOME}/.mozilla/firefox/"*".dev/user.js"; then
+    grep -A2 "\* Betterfox" "${HOME}/.mozilla/firefox/"*".dev/user.js" | grep "version" | sed "s/.*: //;s/ .*//"
+  fi
 }
 
 getIntellijIdeaVersion() {
-  [[ -d "/opt/intellij-idea" ]] \
-    && jq ".version" "/opt/intellij-idea/product-info.json" | tr -d "\""
+  if [[ -d "/opt/intellij-idea" ]]; then
+    jq ".version" "/opt/intellij-idea/product-info.json" | tr -d "\""
+  fi
 }
 
 getDBeaverVersion() {
-  [[ -d "/opt/dbeaver" ]] \
-    && grep "version=" "/opt/dbeaver/.eclipseproduct" | sed "s/.*=//"
+  if [[ -d "/opt/dbeaver" ]]; then
+    grep "version=" "/opt/dbeaver/.eclipseproduct" | sed "s/.*=//"
+  fi
 }
 
 getPostmanVersion() {
-  [[ -d "/opt/postman" ]] \
-    && jq ".version" "/opt/postman/resources/app/package.json" | tr -d "\""
+  if [[ -d "/opt/postman" ]]; then
+    jq ".version" "/opt/postman/resources/app/package.json" | tr -d "\""
+  fi
 }
 
 getKeystoreExplorerVersion() {
-  isPackageInstalled "kse" \
-    && unzip -p "/opt/keystore-explorer/kse.jar" "org/kse/version.properties" | grep "KSE.Version" | sed "s/.*=//"
+  if isPackageInstalled "kse"; then
+    unzip -p "/opt/keystore-explorer/kse.jar" "org/kse/version.properties" | grep "KSE.Version" | sed "s/.*=//"
+  fi
 }
 
 getGitVersion() {
-  isPackageInstalled "git" \
-    && git version | sed "s/.*version //"
+  if isPackageInstalled "git"; then
+    git version | sed "s/.*version //"
+  fi
 }
 
 getGitFilterRepoVersion() {
-  [[ -f "/usr/local/bin/git-filter-repo" ]] \
-    && cat "/etc/versions/git-filter-repo.version"
+  if [[ -f "/usr/local/bin/git-filter-repo" ]]; then
+    cat "/etc/versions/git-filter-repo.version"
+  fi
 }
 
 getGitLfsVersion() {
-  isPackageInstalled "git-lfs" \
-    && git lfs version | sed "s/.*\///;s/ (.*//"
+  if isPackageInstalled "git-lfs"; then
+    git lfs version | sed "s/.*\///;s/ (.*//"
+  fi
 }
 
 getGitHubCliVersion() {
-  isPackageInstalled "gh" \
-    && gh --version | grep gh | sed "s/.*version //;s/ (.*//"
+  if isPackageInstalled "gh"; then
+    gh --version | grep gh | sed "s/.*version //;s/ (.*//"
+  fi
 }
 
 getJavaLtsVersion() {
-  isPackageInstalled "java" \
-    && java --version | grep "java" | sed "s/java //;s/ .*//"
+  if isPackageInstalled "java"; then
+    java --version | grep "java" | sed "s/java //;s/ .*//"
+  fi
 }
 
 getJavaStsVersion() {
-  [[ -x "/opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java" ]] \
-    && /opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java --version | grep "java" | sed "s/java //;s/ .*//"
+  if [[ -x "/opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java" ]]; then
+    /opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java --version | grep "java" | sed "s/java //;s/ .*//"
+  fi
 }
 
 getSdkManVersion() {
-  isPackageInstalled "sdk" \
-    && cat "${HOME}/.sdkman/var/version"
+  if isPackageInstalled "sdk"; then
+    cat "${HOME}/.sdkman/var/version"
+  fi
 }
 
 getSdkManDependencyVersion() {
@@ -191,113 +293,135 @@ getSdkManDependencyVersion() {
 }
 
 getAsyncProfilerVersion() {
-  isPackageInstalled "asprof" \
-      && asprof --version | sed "s/.*profiler //;s/ .*//"
+  if isPackageInstalled "asprof"; then
+    asprof --version | sed "s/.*profiler //;s/ .*//"
+  fi
 }
 
 getKafkaVersion() {
-  [[ -d "/opt/kafka" ]] \
-    && ls "/opt/kafka/libs" | grep -m 1 "kafka-server" | sed "s/.*-//;s/.jar//"
+  if [[ -d "/opt/kafka" ]]; then
+    ls "/opt/kafka/libs" | grep -m 1 "kafka-server" | sed "s/.*-//;s/.jar//"
+  fi
 }
 
 getNodeVersion() {
-  isPackageInstalled "node" \
-    && node --version | sed "s/v//"
+  if isPackageInstalled "node"; then
+    node --version | sed "s/v//"
+  fi
 }
 
 getCorepackVersion() {
-  isPackageInstalled "corepack" \
-    && corepack --version
+  if isPackageInstalled "corepack"; then
+    corepack --version
+  fi
 }
 
 getNpmVersion() {
-  isPackageInstalled "npm" \
-    && npm --version
+  if isPackageInstalled "npm"; then
+    npm --version
+  fi
 }
 
 getPnpmVersion() {
-  isPackageInstalled "pnpm" \
-    && pnpm --version
+  if isPackageInstalled "pnpm"; then
+    pnpm --version
+  fi
 }
 
 getYarnVersion() {
-  isPackageInstalled "yarn" \
-    && yarn --version
+  if isPackageInstalled "yarn"; then
+    yarn --version
+  fi
 }
 
 getGulpCliVersion() {
-  isPackageInstalled "gulp" \
-    && gulp --version | grep "CLI" | sed "s/.*: //"
+  if isPackageInstalled "gulp"; then
+    gulp --version | grep "CLI" | sed "s/.*: //"
+  fi
 }
 
 getPythonVersion() {
-  isPackageInstalled "python3" \
-    && python3 --version | sed "s/.* //"
+  if isPackageInstalled "python3"; then
+    python3 --version | sed "s/.* //"
+  fi
 }
 
 getPipxVersion() {
-  isPackageInstalled "pipx" \
-    && pipx --version
+  if isPackageInstalled "pipx"; then
+    pipx --version
+  fi
 }
 
 getVirtualEnvVersion() {
-  isPackageInstalled "virtualenv" \
-    && virtualenv --version | sed "s/virtualenv //;s/ from.*//"
+  if isPackageInstalled "virtualenv"; then
+    virtualenv --version | sed "s/virtualenv //;s/ from.*//"
+  fi
 }
 
 getGoVersion() {
-  isPackageInstalled "go" \
-    && go version | sed "s/.* go//;s/ .*//"
+  if isPackageInstalled "go"; then
+    go version | sed "s/.* go//;s/ .*//"
+  fi
 }
 
 getDockerClientVersion() {
-  isPackageInstalled "docker" \
-    && docker version --format "{{.Client.Version}}"
+  if isPackageInstalled "docker"; then
+    docker version --format "{{.Client.Version}}"
+  fi
 }
 
 getDockerServerVersion() {
-  isPackageInstalled "docker" \
-    && docker version --format "{{.Server.Version}}"
+  if isPackageInstalled "docker"; then
+    docker version --format "{{.Server.Version}}"
+  fi
 }
 
 getDockerBuildxVersion() {
-  isPackageInstalled "docker" \
-    && docker buildx version | sed "s/.* v//;s/ .*//"
+  if isPackageInstalled "docker"; then
+    docker buildx version | sed "s/.* v//;s/ .*//"
+  fi
 }
 
 getDockerComposeVersion() {
-  isPackageInstalled "docker" \
-    && docker compose version --short
+  if isPackageInstalled "docker"; then
+    docker compose version --short
+  fi
 }
 
 getDockerScoutVersion() {
-  isPackageInstalled "docker" \
-    && docker scout version | grep version | sed "s/.* v//;s/ (.*//"
+  if isPackageInstalled "docker"; then
+    docker scout version | grep version | sed "s/.* v//;s/ (.*//"
+  fi
 }
 
 getKubectlClientVersion() {
-  isPackageInstalled "kubectl" \
-    && kubectl version --client | grep "Client Version:" | sed "s/.*v//"
+  if isPackageInstalled "kubectl"; then
+    kubectl version --client | grep "Client Version:" | sed "s/.*v//"
+  fi
 }
 
 getKubectlServerVersion() {
-  isPackageInstalled "k3d" \
-    && k3d version | grep "k3s" | sed "s/.*v//;s/ (.*//"
+  if isPackageInstalled "k3d"; then
+    k3d version | grep "k3s" | sed "s/.*v//;s/ (.*//"
+  fi
 }
 
 getKubectlKrewVersion() {
-  [[ -d "${HOME}/.krew" ]] \
-    && kubectl krew version | grep "GitTag" | sed "s/.*v//"
+  if [[ -d "${HOME}/.krew" ]]; then
+    kubectl krew version | grep "GitTag" | sed "s/.*v//"
+  fi
 }
 
 getK3dVersion() {
-  isPackageInstalled "k3d" \
-    && k3d version | grep "k3d" | sed "s/.*v//"
+  if isPackageInstalled "k3d"; then
+    k3d version | grep "k3d" | sed "s/.*v//"
+  fi
 }
 
 getHelmVersion() {
-  isPackageInstalled "helm" \
-    && helm version --template="Version: {{.Version}}" | sed "s/.*v//"
+  if isPackageInstalled "helm"; then
+    helm version --template="Version: {{.Version}}" | sed "s/.*v//"
+  fi
 }
 
 isPackageInstalled() {
