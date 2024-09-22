@@ -54,9 +54,11 @@ RUN wget -q -O "github-cli.tar.gz" "https://github.com/cli/cli/releases/download
     && chmod +x "/github-cli/gh" \
     && /github-cli/gh completion -s bash > "/bash_completion.d/gh"
 
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS sdkman
+FROM ubuntu:${UBUNTU_VERSION} AS sdkman
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NOWARNINGS="yes"
 RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends ca-certificates unzip zip > /dev/null \
+    && apt-get install -y --no-install-recommends apt-utils ca-certificates curl unzip wget zip > /dev/null \
     && export SDKMAN_DIR="/sdkman" \
     && wget -q -O - "https://get.sdkman.io" | bash > /dev/null \
     && sed --in-place "/sdkman_auto_answer=/c sdkman_auto_answer=true" "${SDKMAN_DIR}/etc/config" \
@@ -94,12 +96,14 @@ RUN wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSIO
         "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
         "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs"
 
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
+FROM ubuntu:${UBUNTU_VERSION} AS node
 ARG NODE_VERSION
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NOWARNINGS="yes"
 RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends xz-utils > /dev/null \
+    && apt-get install -y --no-install-recommends apt-utils ca-certificates wget xz-utils > /dev/null \
     && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && mkdir --parents "/node/.cache" "/bash_completion.d" \
+    && mkdir --parents "/node/.cache" "/yarn-config" "/bash_completion.d" \
     && tar --extract --no-same-owner --directory="/node" --strip-components=1 --file="node.tar.xz" \
         "node-v${NODE_VERSION}-linux-x64/bin" \
         "node-v${NODE_VERSION}-linux-x64/include" \
@@ -112,7 +116,8 @@ RUN export PATH="/node/bin:${PATH}" \
     && corepack enable \
     && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
     && mv "/root/.cache/node/corepack" "/node/.cache" \
-    && pnpm completion bash > "/bash_completion.d/pnpm"
+    && pnpm completion bash > "/bash_completion.d/pnpm" \
+    && printf "enableTelemetry: 0\n" > "/yarn-config/.yarnrc.yml"
 ARG GULP_CLI_VERSION
 RUN export PATH="/node/bin:${PATH}" \
     && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
@@ -122,9 +127,10 @@ FROM alpine:latest AS cloud-tools
 ARG GO_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
-    && mkdir --parents "/go" "/docker/cli-plugins" "/cloud-tools" "/bash_completion.d" \
+    && mkdir --parents "/go" "/go-config/telemetry" "/docker/cli-plugins" "/cloud-tools" "/bash_completion.d" \
     && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz"
+    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/go" --strip-components=1 --file="go.tar.gz" \
+    && printf "off\n" > "/go-config/telemetry/mode"
 ARG DOCKER_SCOUT_VERSION
 RUN wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
@@ -143,18 +149,20 @@ RUN wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-am
     && chmod +x "/cloud-tools/helm" \
     && /cloud-tools/helm completion bash > "/bash_completion.d/helm"
 
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS krew
+FROM ubuntu:${UBUNTU_VERSION} AS krew
 ARG KUBECTL_KREW_VERSION
+ENV DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NOWARNINGS="yes"
 RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends git > /dev/null \
-    && mkdir --parents "/krew/store" "/krew/receipts" \
+    && apt-get install -y --no-install-recommends apt-utils ca-certificates git wget > /dev/null \
+    && mkdir --parents "/krew/store" "/krew/receipts" "/krew-config" \
     && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
     && /tmp/krew-linux_amd64 install krew > /dev/null \
     && mv "/root/.krew/store/krew" "/krew/store" \
     && mv "/root/.krew/index" "/krew" \
     && mv "/root/.krew/receipts"/* "/krew/receipts" \
-    && mv "/root/.krew" "/"
+    && mv "/root/.krew"/* "/krew-config"
 
 FROM scratch AS dependencies
 COPY --from=kitty                               /kitty                          /dev-tools/kitty/
@@ -168,29 +176,32 @@ COPY --from=github-cli                          /bash_completion.d              
 COPY --from=sdkman                              /sdkman                         /dev-tools/sdkman/
 COPY --from=kafka                               /kafka                          /dev-tools/kafka/
 COPY --from=node                                /node                           /dev-tools/node/
+COPY --from=node                                /yarn-config                    /user-home/
 COPY --from=node                                /bash_completion.d              /bash_completion.d/
 COPY --from=cloud-tools                         /go                             /go/
+COPY --from=cloud-tools                         /go-config                      /user-home/.config/go/
 COPY --from=cloud-tools                         /docker                         /docker/
 COPY --from=cloud-tools                         /cloud-tools                    /binaries/
 COPY --from=cloud-tools                         /bash_completion.d              /bash_completion.d/
-COPY --from=krew                                /.krew                          /user-home/.krew/
 COPY --from=krew                                /krew                           /dev-tools/krew/
+COPY --from=krew                                /krew-config                    /user-home/.krew/
 COPY --chmod=644                                docker-config                   /docker-config/
-COPY --chmod=644 --exclude=*/.root_environment  home-config                     /user-home/
+COPY --chmod=644 --exclude=.root_environment    home-config                     /user-home/
 COPY --chmod=644                                home-config/.root_environment   /root-home/.environment
 COPY --chmod=644                                kitty-config                    /user-home/.config/kitty/
 COPY                                            scripts */yad-panel             /binaries/
 COPY --chmod=644                                yad-panel/config                /yad-panel/config/
 COPY --chmod=644                                yad-panel/service               /yad-panel/service/
 
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main
+FROM ubuntu:${UBUNTU_VERSION}
 ARG UBUNTU_DEV_VM_VERSION
 ARG GIT_REVISION
 ARG UID=1001
 ENV USER=${image.user} \
-    DISPLAY=${image.display}
-LABEL maintainer="https://github.com/P-Marcin" \
-      org.opencontainers.image.authors="https://github.com/P-Marcin" \
+    DISPLAY=${image.display} \
+    DEBIAN_FRONTEND=noninteractive \
+    DEBCONF_NOWARNINGS="yes"
+LABEL org.opencontainers.image.authors="https://github.com/P-Marcin" \
       org.opencontainers.image.vendor="P-Marcin" \
       org.opencontainers.image.title="${image.namespace}/${project.artifactId}" \
       org.opencontainers.image.description="Ubuntu DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
@@ -206,16 +217,34 @@ RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends \
         # Custom repositories
         software-properties-common \
+        # System
+        apt-utils \
+        ca-certificates \
+        dbus \
+        dbus-x11 \
+        cron \
+        iproute2 \
+        iptables \
+        iputils-ping \
+        net-tools \
+        procps \
+        sudo \
+        systemd \
+        tzdata \
+        udev \
         # Utilities
         bash-completion \
-        ca-certificates \
-        dbus-x11 \
+        curl \
         gedit \
         gnome-keyring \
+        gnupg \
         jq \
+        less \
         nano \
         tree \
         unzip \
+        vim-tiny \
+        wget \
         xz-utils \
         yad \
         zip \
@@ -254,11 +283,25 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         git git-lfs \
         firefox libpci3 \
         > /dev/null \
+    # Systemd setup
+    && find "/etc/systemd/system" \
+        "/lib/systemd/system" \
+        -path "*.wants/*" \
+        \( -name "*getty*" \
+        -or -name "*apt-daily*" \
+        -or -name "*systemd-timesyncd*" \
+        -or -name "*systemd-logind*" \
+        -or -name "*systemd-vconsole-setup*" \
+        -or -name "*systemd-readahead*" \
+        -or -name "*udev*" \) \
+        -exec rm {} + \
+    && systemctl set-default multi-user.target \
+	&& systemctl mask dev-hugepages.mount sys-fs-fuse-connections.mount network.service \
     # User setup
     && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
     && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
     && usermod --home "/nonexistent" ubuntu \
-    && rm -rf "/home/ubuntu" \
+    && rm -r "/home/ubuntu" \
     # Create projects directory
     && mkdir "/home/${USER}/projects" \
     # Source .environment in .bashrc
@@ -283,18 +326,7 @@ fi\n" >> "/root/.bashrc" \
         "/var/cache"/* \
         "/var/lib/apt/lists"/* \
         "/var/log"/* \
-        "/var/tmp"/* \
-    && find "/etc/systemd/system" \
-        "/lib/systemd/system" \
-        -path "*.wants/*" \
-        \( -name "*getty*" \
-        -or -name "*apt-daily*" \
-        -or -name "*systemd-timesyncd*" \
-        -or -name "*systemd-logind*" \
-        -or -name "*systemd-vconsole-setup*" \
-        -or -name "*systemd-readahead*" \
-        -or -name "*udev*" \) \
-        -exec rm {} +
+        "/var/tmp"/*
 
 COPY --from=dependencies --chown=${USER}:${USER}    /dev-tools          /opt/
 COPY --from=dependencies                            /binaries           /usr/local/bin/
@@ -313,7 +345,7 @@ ARG VIRTUALENV_VERSION
 RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
     && mv "/home/${USER}/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
     # Yad Panel configuration \
-    && chmod 755 "/etc/yad-panel/apps" \
+    && chmod u+rwx,g+rx,o+rx "/etc/yad-panel/apps" \
     && systemctl enable yad-panel.service > /dev/null \
     # Gedit configuration
     && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
@@ -341,7 +373,6 @@ RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
     # Corepack/Yarn configuration
     && mkdir --parents "/home/${USER}/.cache/node" \
     && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
-    && printf "enableTelemetry: 0" > "/home/${USER}/.yarnrc.yml" \
     # Python configuration
     && su -c "pipx install virtualenv==${VIRTUALENV_VERSION}" "${USER}" \
     && mkdir "/opt/pipx" \
@@ -362,8 +393,8 @@ RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
     && chown --recursive "${USER}":"${USER}" "/opt"/* \
     && chmod go+w "/opt" \
     # Cleanup
-    && rm -rf "/home/${USER}/.cache/pip" \
-        "/home/${USER}/.cache/pipx" \
+    && find "/home/${USER}/.cache" -mindepth 1 -maxdepth 1 -not -name "node" -exec rm -r {} + \
+    && rm -rf "/home/${USER}/.dbus" \
         "/home/${USER}/.local/share/man" \
         "/home/${USER}/.local/state" \
         "/root/.cache" \
@@ -372,18 +403,7 @@ RUN su -c "firefox --headless -CreateProfile ${USER}" "${USER}" \
         "/usr/local/share/.cache"/* \
         "/var/cache"/* \
         "/var/log"/* \
-        "/var/tmp"/* \
-    && find "/etc/systemd/system" \
-        "/lib/systemd/system" \
-        -path "*.wants/*" \
-        \( -name "*getty*" \
-        -or -name "*apt-daily*" \
-        -or -name "*systemd-timesyncd*" \
-        -or -name "*systemd-logind*" \
-        -or -name "*systemd-vconsole-setup*" \
-        -or -name "*systemd-readahead*" \
-        -or -name "*udev*" \) \
-        -exec rm {} +
+        "/var/tmp"/*
 
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
 
@@ -391,3 +411,5 @@ WORKDIR /home/${USER}
 
 ARG BUILD_TIMESTAMP
 LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}"
+
+CMD [ "/bin/systemd" ]
