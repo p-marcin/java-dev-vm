@@ -1,0 +1,2 @@
+NAME=Firefox
+COMMAND=firefox

@@ -1,0 +1,39 @@
+#!/bin/bash
+# STARTS "YET ANOTHER DIALOG" PANEL WITH APP BUTTONS
+
+# CONSTANTS
+readonly APPS_PATH="/etc/yad-panel/apps"
+readonly ICON_PATH="/etc/yad-panel/yad-panel.png"
+readonly POSITION_X="1"
+readonly POSITION_Y="-50"
+
+main() {
+  createAppButtons
+  startYadPanel
+}
+
+createAppButtons() {
+  for file in "${APPS_PATH}"/*.app; do
+    if [[ -f "${file}" ]]; then
+      name=$(grep "NAME=" "${file}" | sed "s/NAME=//")
+      command=$(grep "COMMAND=" "${file}" | sed "s/COMMAND=//")
+      appButtons+=( "--button=${name}:${command}")
+    fi
+  done
+}
+
+startYadPanel() {
+  if [[ -n "${appButtons[*]}" ]]; then
+    yad --fixed \
+        --no-escape \
+        --posx "${POSITION_X}" \
+        --posy "${POSITION_Y}" \
+        --window-icon "${ICON_PATH}" \
+        --title "${USER}" \
+        "${appButtons[@]}"
+  else
+    kitty "${HOME}"
+  fi
+}
+
+main

@@ -1,0 +1,2 @@
+NAME=Postman
+COMMAND=postman

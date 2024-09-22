@@ -1,0 +1,176 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>pl.javowiec</groupId>
+    <artifactId>ubuntu-dev-vm</artifactId>
+    <version>24.08.1</version>
+    <packaging>pom</packaging>
+
+    <name>Ubuntu DEV VM</name>
+
+    <properties>
+        <!-- https://wiki.ubuntu.com/Releases
+             https://git.launchpad.net/livecd-rootfs/tree/live-build
+             https://github.com/test-kitchen/dokken-images/blob/main/ubuntu-24.04/Dockerfile -->
+        <ubuntu.version>24.04</ubuntu.version>
+        <!-- https://www.jetbrains.com/idea/download/other.html -->
+        <intellij-idea.version>2024.2.0.1</intellij-idea.version>
+        <!-- https://github.com/kaikramer/keystore-explorer/releases -->
+        <keystore-explorer.version>5.5.3</keystore-explorer.version>
+        <!-- https://www.postman.com/release-notes/postman-app -->
+        <postman.version>latest</postman.version>
+        <!-- https://www.java.com/releases -->
+        <java.version>21.0.4-oracle</java.version>
+        <!-- https://maven.apache.org/docs/history.html -->
+        <maven.version>3.9.8</maven.version>
+        <!-- https://github.com/spring-projects/spring-boot/releases -->
+        <spring-boot.version>3.3.1</spring-boot.version>
+        <!-- https://kafka.apache.org/downloads -->
+        <kafka.version>3.8.0</kafka.version>
+        <scala.version>2.13</scala.version>
+        <!-- https://github.com/bcicen/ctop/releases -->
+        <ctop.version>0.7.7</ctop.version>
+        <!-- https://kubernetes.io/releases
+             https://github.com/kubernetes/kubernetes/releases -->
+        <kubectl.version>1.30.3</kubectl.version>
+        <!-- https://github.com/kubernetes-sigs/krew/releases -->
+        <kubectl-krew.version>0.4.4</kubectl-krew.version>
+        <!-- https://github.com/k3d-io/k3d/releases
+             https://github.com/k3s-io/k3s/releases -->
+        <k3d.version>5.7.3</k3d.version>
+        <!-- https://github.com/helm/helm/releases -->
+        <helm.version>3.15.4</helm.version>
+        <!-- https://github.com/derailed/k9s/releases -->
+        <k9s.version>0.32.5</k9s.version>
+
+        <dockerhub.user>javowiec</dockerhub.user>
+
+        <image.user>dev</image.user>
+        <image.display>host.docker.internal:0.0</image.display>
+        <image.tag>${dockerhub.user}/${project.artifactId}:${project.version}</image.tag>
+        <image.target>${project.build.directory}/docker</image.target>
+
+        <!-- https://github.com/apache/maven-resources-plugin/releases -->
+        <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
+        <!-- https://github.com/mojohaus/exec-maven-plugin/releases -->
+        <exec-maven-plugin.version>3.4.1</exec-maven-plugin.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>docker</directory>
+                <targetPath>docker</targetPath>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>docker</directory>
+                <targetPath>docker</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>home-config/.environment</include>
+                    <include>yad-panel/service/yad-panel.service</include>
+                    <include>Dockerfile</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>process-image</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>buildx</argument>
+                                <argument>build</argument>
+                                <argument>--build-arg=UBUNTU_DEV_VM_VERSION=${project.version}</argument>
+                                <argument>--build-arg=UBUNTU_VERSION=${ubuntu.version}</argument>
+                                <argument>--build-arg=INTELLIJ_IDEA_VERSION=${intellij-idea.version}</argument>
+                                <argument>--build-arg=INTELLIJ_IDEA_EDITION=${intellij-idea.edition}</argument>
+                                <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
+                                <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
+                                <argument>--build-arg=JAVA_VERSION=${java.version}</argument>
+                                <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
+                                <argument>--build-arg=SPRING_BOOT_VERSION=${spring-boot.version}</argument>
+                                <argument>--build-arg=KAFKA_VERSION=${kafka.version}</argument>
+                                <argument>--build-arg=SCALA_VERSION=${scala.version}</argument>
+                                <argument>--build-arg=CTOP_VERSION=${ctop.version}</argument>
+                                <argument>--build-arg=KUBECTL_VERSION=${kubectl.version}</argument>
+                                <argument>--build-arg=KUBECTL_KREW_VERSION=${kubectl-krew.version}</argument>
+                                <argument>--build-arg=K3D_VERSION=${k3d.version}</argument>
+                                <argument>--build-arg=HELM_VERSION=${helm.version}</argument>
+                                <argument>--build-arg=K9S_VERSION=${k9s.version}</argument>
+                                <argument>--tag=${image.tag}-${image.tag.edition}</argument>
+                                <argument>${image.target}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>prune-unused-build-cache</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>docker</executable>
+                            <arguments>
+                                <argument>buildx</argument>
+                                <argument>prune</argument>
+                                <argument>--force</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>community</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <intellij-idea.edition>C</intellij-idea.edition>
+                <image.tag.edition>community</image.tag.edition>
+            </properties>
+        </profile>
+        <profile>
+            <id>ultimate</id>
+            <properties>
+                <intellij-idea.edition>U</intellij-idea.edition>
+                <image.tag.edition>ultimate</image.tag.edition>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
