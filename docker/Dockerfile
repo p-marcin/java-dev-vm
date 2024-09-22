@@ -321,6 +321,7 @@ RUN echo "> Enable Yad-Panel..." \
             && gsettings set \"org.gnome.gedit.preferences.ui\" \"statusbar-visible\" \"false\"" > /dev/null 2>&1 \
         && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
     && echo "> Configure Kitty..." \
+        && ln --symbolic "/opt/kitty/bin/kitten" "/usr/local/bin/kitten" \
         && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
     && echo "> Configure GUI Apps..." \
         && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
