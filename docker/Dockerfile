@@ -37,12 +37,12 @@ ARG GULP_CLI_VERSION
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends xz-utils > /dev/null \
     && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && mkdir "/node" "/bash_completion.d" \
+    && mkdir "/node" "/corepack" "/bash_completion.d" \
     && tar --extract --no-same-owner --directory "/node" --strip-components=1 --file="node.tar.xz" \
     && export PATH="/node/bin:${PATH}" \
     && corepack enable \
     && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
-    && mv "/root/.cache/node/corepack" "/node" \
+    && mv "/root/.cache/node/corepack"/* "/corepack" \
     && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
     && npm completion bash > "/bash_completion.d/npm" \
     && pnpm completion bash > "/bash_completion.d/pnpm"
@@ -51,7 +51,7 @@ FROM alpine:latest AS postman
 ARG POSTMAN_VERSION
 RUN wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
     && mkdir "/postman" \
-	&& tar --extract --gzip --no-same-owner --directory="/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app"
+    && tar --extract --gzip --no-same-owner --directory="/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app"
 
 FROM alpine:latest AS sdkman
 ARG JAVA_VERSION
@@ -77,6 +77,7 @@ COPY --from=kafka /kafka /dev-tools/kafka/
 COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=kitty /kitty /dev-tools/kitty/
 COPY --from=node /node /dev-tools/node/
+COPY --from=node /corepack /dev-tools/corepack/
 COPY --from=node /bash_completion.d /bash_completion.d/
 COPY --from=postman /postman /dev-tools/postman/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
@@ -89,8 +90,8 @@ ARG K3D_VERSION
 ARG HELM_VERSION
 ARG K9S_VERSION
 RUN apk -q update \
-	&& apk -q add --no-cache git \
-	&& mkdir --parents "/cloud-tools/.krew" "/bash_completion.d" \
+    && apk -q add --no-cache git \
+    && mkdir --parents "/cloud-tools/.krew" "/bash_completion.d" \
     # Ctop
     && wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
     && chmod +x "/cloud-tools/ctop" \
@@ -98,7 +99,7 @@ RUN apk -q update \
     && wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && chmod +x "/cloud-tools/kubectl" \
     && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl" \
-	# Kubectl Krew
+    # Kubectl Krew
     && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory "/tmp" --file="/tmp/krew.tar.gz" \
     && /tmp/krew-linux_amd64 install krew > /dev/null \
@@ -119,26 +120,28 @@ RUN apk -q update \
     && /cloud-tools/k9s completion bash > "/bash_completion.d/k9s"
 
 FROM scratch AS all-tools
-COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
-COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
-COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
-COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
 COPY --chmod=644 docker-config /all-tools/docker-config/
 COPY --chmod=644 home-config /all-tools/home-config/
 COPY --chmod=644 kitty-config /all-tools/kitty-config/
 COPY scripts yad-panel/yad-panel /all-tools/scripts/
 COPY --chmod=644 yad-panel/config /all-tools/yad-panel/config/
 COPY --chmod=644 yad-panel/service /all-tools/yad-panel/service/
+COPY --from=cloud-tools /bash_completion.d /all-tools/bash_completion.d/
+COPY --from=cloud-tools /cloud-tools /all-tools/cloud-tools/
+COPY --from=dev-tools /bash_completion.d /all-tools/bash_completion.d/
+COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main
 ARG UBUNTU_DEV_VM_VERSION
 ARG UID=1001
 ENV USER=${image.user} \
-	DISPLAY=${image.display}
+    DISPLAY=${image.display}
 
 # System setup
 RUN apt-get -qq update -y \
     && apt-get install -y --no-install-recommends \
+        # Custom repositories
+        software-properties-common \
         # Utilities
         bash-completion \
         ca-certificates \
@@ -152,18 +155,16 @@ RUN apt-get -qq update -y \
         xz-utils \
         yad \
         zip \
-        # Custom repositories
-        software-properties-common \
-        # Python
-        pipx \
-		# OpenGL dependency
-		libgl1 libegl1 \
-		# IntelliJ IDEA dependency
-		libxtst6 \
+        # OpenGL dependency
+        libgl1 libegl1 \
+        # IntelliJ IDEA dependency
+        libxtst6 \
         # Kitty Terminal dependency
         libxcb-xkb1 \
         # Postman dependency
         libnss3 \
+        # Python
+        pipx \
         > /dev/null \
     # Custom repositories installation
     && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
@@ -190,10 +191,21 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
         docker-ce docker-ce-cli containerd.io \
         > /dev/null \
     # User setup
-	&& useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
+    && useradd --uid ${UID} --user-group --create-home --comment "Developer" --shell "/bin/bash" "${USER}" \
     && printf "${USER} ALL=(ALL) NOPASSWD: ALL\n" > "/etc/sudoers.d/${USER}" \
     && usermod --home "/nonexistent" ubuntu \
     && rm -rf "/home/ubuntu" \
+    # Create projects directory
+    && mkdir "/home/${USER}/projects" \
+    # Source .environment in .bashrc
+    && printf "\nif [ -f ~/.environment ]; then\n\
+    . ~/.environment\n\
+fi\n" >> "/home/${USER}/.bashrc" \
+    && printf "\nif [ -f ~/.environment ]; then\n\
+    . ~/.environment\n\
+fi\n" >> "/root/.bashrc" \
+    # Create .ubuntu-dev-vm.version file
+    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/.ubuntu-dev-vm.version" \
     # Cleanup
     && apt-get -qq autoremove -y --purge \
     && apt-get -qq clean -y \
@@ -221,84 +233,76 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
 
 COPY --from=all-tools /all-tools /tmp/all-tools/
 
-# Move configurations from COPY step
-RUN mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
+# Move docker-config
+RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
+    # Move home-config
     && su -c "firefox -CreateProfile ${USER}" "${USER}" \
     && mv "/tmp/all-tools/home-config/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
+    && mv "/tmp/all-tools/home-config/.root_environment" "/root/.environment" \
     && bash -c "shopt -s dotglob; mv \"/tmp/all-tools/home-config\"/* \"/home/${USER}\"" \
+    # Move kitty-config
     && mkdir --parents "/home/${USER}/.config/kitty" \
     && mv "/tmp/all-tools/kitty-config"/* "/home/${USER}/.config/kitty" \
-    && mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
+    # Move scripts
     && mv "/tmp/all-tools/scripts"/* "/usr/local/bin" \
-    && mv "/tmp/all-tools/yad-panel/service"/* "/etc/systemd/system" \
+    # Move yad-panel
     && mkdir "/etc/yad-panel" \
     && mv "/tmp/all-tools/yad-panel/config"/* "/etc/yad-panel" \
     && chmod 755 "/etc/yad-panel/apps" \
-    # Bash completion configuration
+    && mv "/tmp/all-tools/yad-panel/service"/* "/etc/systemd/system" \
+    && systemctl enable yad-panel.service > /dev/null \
+    # Move bash_completion.d
     && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
-    # Kubectl Krew configuration
+    # Move cloud-tools/.krew
     && mv "/tmp/all-tools/cloud-tools/.krew" "/home/${USER}" \
     && ln --symbolic --force "/home/${USER}/.krew/store/krew/$(ls "/home/${USER}/.krew/store/krew")/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
-    # Cloud Tools configuration
+    # Move cloud-tools
     && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
-	# Dev Tools configuration
+    # Move dev-tools
     && mv "/tmp/all-tools/dev-tools"/* "/opt" \
     && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
     && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
     && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
-    # Git configuration
-    && git config --global "init.defaultBranch" "main" \
-    && mv "/root/.gitconfig" "/home/${USER}" \
+    # Corepack/Yarn configuration
+    && mkdir --parents "/home/${USER}/.cache/node" \
+    && mv "/opt/corepack" "/home/${USER}/.cache/node" \
+    && printf "enableTelemetry: 0" > "/home/${USER}/.yarnrc.yml" \
     # Docker configuration
     && usermod --append --groups "docker" "${USER}" \
     && docker completion bash > "/etc/bash_completion.d/docker" \
-	# Maven configuration
-    && mkdir --parents "/home/${USER}/.m2/repository" \
-    && cp "/opt/sdkman/candidates/maven/current/conf/settings.xml" "/opt/sdkman/candidates/maven/current/conf/toolchains.xml" \
-        "/home/${USER}/.m2" \
-    # Gedit configuration \
+    # Gedit configuration
     && gsettings set "org.gnome.gedit.preferences.editor" "insert-spaces" "true" \
     && gsettings set "org.gnome.gedit.preferences.editor" "tabs-size" "4" \
     && gsettings set "org.gnome.gedit.preferences.editor" "scheme" "oblivion" \
     && gsettings set "org.gnome.gedit.preferences.ui" "statusbar-visible" "false" \
     && cp -r "/root/.config/dconf" "/home/${USER}/.config" \
-	# Corepack/Yarn configuration
-    && mkdir --parents "/home/${USER}/.cache/node" \
-    && mv "/opt/node/corepack" "/home/${USER}/.cache/node" \
-	&& printf "enableTelemetry: 0" > /home/${USER}/.yarnrc.yml \
-    # Create projects directory
-    && mkdir "/home/${USER}/projects" \
-    # Create .ubuntu-dev-vm.version file
-    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/.ubuntu-dev-vm.version" \
-    # Source .environment in .bashrc
-    && printf "\nif [ -f ~/.environment ]; then\n\
-    . ~/.environment\n\
-fi\n" >> "/home/${USER}/.bashrc" \
-    && printf "\nif [ -f ~/.environment ]; then\n\
-    . ~/.environment\n\
-fi\n" >> "/root/.bashrc" \
+    # Git configuration
+    && git config --global "init.defaultBranch" "main" \
+    && mv "/root/.gitconfig" "/home/${USER}" \
+    # Maven configuration
+    && mkdir --parents "/home/${USER}/.m2/repository" \
+    && cp "/opt/sdkman/candidates/maven/current/conf/settings.xml" "/opt/sdkman/candidates/maven/current/conf/toolchains.xml" \
+        "/home/${USER}/.m2" \
+    # Python configuration
+    && su -c "pipx install virtualenv" "${USER}" \
     # Make sure everything in /home/${USER} belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
     # Make sure everything in /opt belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/opt"/* \
     && chmod go+w "/opt" \
-	# Python configuration
-	&& su -c "pipx install virtualenv" "${USER}" \
-	# Enable YAD Panel
-	&& systemctl enable yad-panel.service > /dev/null \
     # Cleanup
     && rm -rf "/home/${USER}/.cache/pip" \
-		"/home/${USER}/.cache/pipx" \
-		"/home/${USER}/.local/share/man" \
-		"/home/${USER}/.local/state" \
-		"/root/.cache" \
+        "/home/${USER}/.cache/pipx" \
+        "/home/${USER}/.local/share/man" \
+        "/home/${USER}/.local/state" \
+        "/root/.cache" \
         "/root/.dbus" \
         "/tmp"/* \
-		"/usr/local/share/.cache"/* \
+        "/usr/local/share/.cache"/* \
         "/var/cache"/* \
-		"/var/log"/* \
-		"/var/tmp"/* \
+        "/var/log"/* \
+        "/var/tmp"/* \
     && find "/etc/systemd/system" \
         "/lib/systemd/system" \
         -path "*.wants/*" \
