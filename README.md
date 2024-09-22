@@ -9,18 +9,18 @@
   <a href="https://hub.docker.com/r/javowiec/java-dev-vm" rel="noreferrer">
       <img src="https://img.shields.io/docker/pulls/javowiec/java-dev-vm?label=Docker%20Pulls&logo=docker&logoColor=white&color=1350CC" alt="Docker Pulls"/>
   </a>
-  <a href="https://github.com/P-Marcin/java-dev-vm/releases" rel="noreferrer">
-      <img src="https://img.shields.io/github/v/release/P-Marcin/java-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
+  <a href="https://github.com/p-marcin/java-dev-vm/releases" rel="noreferrer">
+      <img src="https://img.shields.io/github/v/release/p-marcin/java-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
   </a>
   <a href="LICENSE" rel="noreferrer">
-      <img src="https://img.shields.io/github/license/P-Marcin/java-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
+      <img src="https://img.shields.io/github/license/p-marcin/java-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
   <br>
-  <a href="https://github.com/P-Marcin/java-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/java-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
+  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
   </a>
-  <a href="https://github.com/P-Marcin/java-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/java-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
+  <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/p-marcin/java-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
   </a>
 </p>
 
@@ -213,7 +213,7 @@ On Java DEV VM there are some [useful scripts](src/docker/scripts) which you can
   <summary>Click here to see an example</summary>
   <br>
   <p>If you want to check versions installed (see
-  also <a href="https://github.com/P-Marcin/java-dev-vm/releases">Releases</a> tab), type:</p>
+  also <a href="https://github.com/p-marcin/java-dev-vm/releases">Releases</a> tab), type:</p>
   <img src="docs/images/versions.gif" alt="Versions" width="550px">
 </details>
 
@@ -251,7 +251,7 @@ If you want to remove builder cache, use `prune-builder` Maven profile or open D
 remove `buildx_buildkit_java-dev-vm-builder0_state` volume manually.
 
 Older releases are removed from DockerHub. If you want to use older release for whatever reason, you need to build it
-yourself. In the [Releases](https://github.com/P-Marcin/java-dev-vm/releases) tab you can find zip with the source
+yourself. In the [Releases](https://github.com/p-marcin/java-dev-vm/releases) tab you can find zip with the source
 code.
 
 ## 💖 Support
