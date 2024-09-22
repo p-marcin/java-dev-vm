@@ -89,12 +89,15 @@ Please follow linked official documentation and install all **3** dependencies m
 You can place a `.wslconfig` file in `C:\Users\${username}` where you can configure the amount of memory or the number
 of logical processors you want to assign to Docker Desktop.
 
+> [!WARNING]
+> You need to restart WSL2 service with command: `wsl --shutdown`, and then Docker Desktop to see the changes
+
 Example:
 
 ```
 [wsl2]
 memory=10GB
-processors=6
+processors=4
 swap=0
 ```
 
@@ -198,7 +201,7 @@ This value is arbitrary, but known to work well. Setting the size of `/dev/shm` 
 
 ### Missing `overlay2` Storage Driver
 
-To check the Storage Driver inside Java DEV VM run command: `docker info 2>/dev/null | grep "Storage Driver"`. If it
+To check the Storage Driver inside Java DEV VM run command: `docker system info --format "{{.Driver}}"`. If it
 is not `overlay2`, it means you're missing `--mount source=docker,target=/var/lib/docker` parameter in `docker run`
 command. It is already added to [restart.bat](batch-scripts/restart.bat).
 
