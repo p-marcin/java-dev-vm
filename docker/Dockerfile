@@ -1,26 +1,33 @@
-ARG UBUNTU_VERSION=24.04
+ARG UBUNTU_VERSION
+FROM alpine:latest AS kitty
+ARG KITTY_VERSION
+RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
+    && mkdir "/kitty" \
+    && tar --extract --no-same-owner --directory="/kitty" --file="kitty.txz" "bin" "lib"
+
 FROM alpine:latest AS intellij-idea
 ARG INTELLIJ_IDEA_EDITION
 ARG INTELLIJ_IDEA_VERSION
 RUN wget -q -O "intellij-idea.tar.gz" "https://download.jetbrains.com/idea/ideaI${INTELLIJ_IDEA_EDITION}-${INTELLIJ_IDEA_VERSION}.tar.gz" \
     && mkdir "/intellij-idea" \
-    && tar --extract --gzip --no-same-owner --directory "/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz"
+    && tar --extract --gzip --no-same-owner --directory="/intellij-idea" --strip-components=1 --file="intellij-idea.tar.gz" \
+    && [ -d "/intellij-idea/help" ] \
+    && rm -r "/intellij-idea/help"
 
 FROM alpine:latest AS dbeaver
 ARG DBEAVER_VERSION
 RUN wget -q -O "dbeaver.tar.gz" "https://github.com/dbeaver/dbeaver/releases/download/${DBEAVER_VERSION}/dbeaver-ce-${DBEAVER_VERSION}-linux.gtk.x86_64-nojdk.tar.gz" \
     && mkdir "/dbeaver" \
-    && tar --extract --gzip --no-same-owner --exclude="*/dbeaver-ce.desktop" --exclude="*/readme" --directory "/dbeaver" --strip-components=1 --file="dbeaver.tar.gz"
+    && tar --extract --gzip --no-same-owner \
+        --exclude="dbeaver/dbeaver-ce.desktop" \
+        --exclude="dbeaver/readme" \
+        --directory="/dbeaver" --strip-components=1 --file="dbeaver.tar.gz"
 
-FROM alpine:latest AS kafka
-ARG KAFKA_VERSION
-ARG SCALA_VERSION
-RUN wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
-    && mkdir "/kafka" \
-    && tar --extract --gzip --no-same-owner --exclude="windows" --directory "/kafka" --strip-components=1 --file="kafka.tar.gz" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
-        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs"
+FROM alpine:latest AS postman
+ARG POSTMAN_VERSION
+RUN wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
+    && mkdir "/postman" \
+    && tar --extract --gzip --no-same-owner --directory="/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app"
 
 FROM alpine:latest AS keystore-explorer
 ARG KEYSTORE_EXPLORER_VERSION
@@ -29,42 +36,12 @@ RUN wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/release
     && unzip -q "kse.zip" -x "*.exe" -d "/tmp" \
     && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION//./}"/* "/keystore-explorer"
 
-FROM alpine:latest AS kitty
-ARG KITTY_VERSION
-RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
-    && mkdir "/kitty" \
-    && tar --extract --no-same-owner --directory "/kitty" --file="kitty.txz" "bin" "lib"
-
-FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
-ARG NODE_VERSION
-ARG PNPM_VERSION
-ARG YARN_VERSION
-ARG GULP_CLI_VERSION
-RUN apt-get -qq update -y \
-    && apt-get install -y --no-install-recommends xz-utils > /dev/null \
-    && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && mkdir "/node" "/corepack" "/bash_completion.d" \
-    && tar --extract --no-same-owner --directory "/node" --strip-components=1 --file="node.tar.xz" \
-    && export PATH="/node/bin:${PATH}" \
-    && corepack enable \
-    && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
-    && mv "/root/.cache/node/corepack"/* "/corepack" \
-    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
-    && npm completion bash > "/bash_completion.d/npm" \
-    && pnpm completion bash > "/bash_completion.d/pnpm"
-
-FROM alpine:latest AS postman
-ARG POSTMAN_VERSION
-RUN wget -q -O "postman.tar.gz" "https://dl.pstmn.io/download/${POSTMAN_VERSION}/linux64" \
-    && mkdir "/postman" \
-    && tar --extract --gzip --no-same-owner --directory="/postman" --strip-components=2 --file="postman.tar.gz" "Postman/app"
-
-FROM alpine:latest AS sdkman
+FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS sdkman
 ARG JAVA_VERSION
 ARG MAVEN_VERSION
 ARG SPRING_BOOT_VERSION
-RUN apk -q update \
-    && apk -q add --no-cache bash ca-certificates curl unzip zip \
+RUN apt-get -qq update -y \
+    && apt-get install -y --no-install-recommends ca-certificates unzip zip > /dev/null \
     && export SDKMAN_DIR="/sdkman" \
     && wget -q -O - "https://get.sdkman.io" | bash > /dev/null \
     && sed --in-place "/sdkman_auto_answer=/c sdkman_auto_answer=true" "${SDKMAN_DIR}/etc/config" \
@@ -76,29 +53,78 @@ RUN apk -q update \
     && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
     && sdk install \"java\" \"${JAVA_VERSION}\" > /dev/null \
     && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null \
-    && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null"
+    && sdk install \"springboot\" \"${SPRING_BOOT_VERSION}\" > /dev/null \
+    && sdk flush > /dev/null" \
+    && sed -i 's/\bfind\b/find -L/g' "/sdkman/bin/sdkman-init.sh" "/sdkman/src/sdkman-upgrade.sh" "/sdkman/src/sdkman-list.sh"
+
+FROM alpine:latest AS kafka
+ARG KAFKA_VERSION
+ARG SCALA_VERSION
+RUN wget -q -O "kafka.tar.gz" "https://downloads.apache.org/kafka/${KAFKA_VERSION}/kafka_${SCALA_VERSION}-${KAFKA_VERSION}.tgz" \
+    && mkdir "/kafka" \
+    && tar --extract --gzip --no-same-owner \
+        --exclude="kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin/windows" \
+        --directory="/kafka" --strip-components=1 --file="kafka.tar.gz" \
+        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/bin" \
+        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/config" \
+        "kafka_${SCALA_VERSION}-${KAFKA_VERSION}/libs"
+
+FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS node
+ARG NODE_VERSION
+ARG PNPM_VERSION
+ARG YARN_VERSION
+ARG GULP_CLI_VERSION
+RUN apt-get -qq update -y \
+    && apt-get install -y --no-install-recommends xz-utils > /dev/null \
+    && wget -q -O "node.tar.xz" "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
+    && mkdir --parents "/node/.cache" "/bash_completion.d" \
+    && tar --extract --no-same-owner --directory="/node" --strip-components=1 --file="node.tar.xz" \
+        "node-v${NODE_VERSION}-linux-x64/bin" \
+        "node-v${NODE_VERSION}-linux-x64/include" \
+        "node-v${NODE_VERSION}-linux-x64/lib" \
+    && export PATH="/node/bin:${PATH}" \
+    && corepack enable \
+    && corepack install --global pnpm@${PNPM_VERSION} yarn@${YARN_VERSION} > /dev/null \
+    && mv "/root/.cache/node/corepack" "/node/.cache" \
+    && npm install --silent --global gulp-cli@${GULP_CLI_VERSION} \
+    && npm completion bash > "/bash_completion.d/npm" \
+    && pnpm completion bash > "/bash_completion.d/pnpm" \
+    && rm -r "/node/share"
+
+FROM dokken/ubuntu-${UBUNTU_VERSION}:main AS krew
+ARG KUBECTL_KREW_VERSION
+RUN apt-get -qq update -y \
+    && apt-get install -y --no-install-recommends git > /dev/null \
+    && mkdir --parents "/krew/store" "/krew/receipts" \
+    && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
+    && tar --extract --gzip --no-same-owner --directory="/tmp" --file="/tmp/krew.tar.gz" \
+    && /tmp/krew-linux_amd64 install krew > /dev/null \
+    && mv "/root/.krew/store/krew" "/krew/store" \
+    && mv "/root/.krew/index" "/krew" \
+    && mv "/root/.krew/receipts"/* "/krew/receipts" \
+    && mv "/root/.krew" "/"
 
 FROM scratch AS dev-tools
-COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
-COPY --from=kafka /kafka /dev-tools/kafka/
-COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=kitty /kitty /dev-tools/kitty/
-COPY --from=node /node /dev-tools/node/
-COPY --from=node /corepack /dev-tools/corepack/
-COPY --from=node /bash_completion.d /bash_completion.d/
+COPY --from=dbeaver /dbeaver /dev-tools/dbeaver/
 COPY --from=postman /postman /dev-tools/postman/
+COPY --from=keystore-explorer /keystore-explorer /dev-tools/keystore-explorer/
 COPY --from=sdkman /sdkman /dev-tools/sdkman/
+COPY --from=kafka /kafka /dev-tools/kafka/
+COPY --from=node /node /dev-tools/node/
+COPY --from=node /bash_completion.d /bash_completion.d/
+COPY --from=krew /.krew /dev-tools/.krew/
+COPY --from=krew /krew /dev-tools/krew/
 
 FROM alpine:latest AS cloud-tools
 ARG CTOP_VERSION
 ARG KUBECTL_VERSION
-ARG KUBECTL_KREW_VERSION
 ARG K3D_VERSION
 ARG HELM_VERSION
 ARG K9S_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
-    && mkdir --parents "/cloud-tools/.krew" "/bash_completion.d" \
+    && mkdir "/cloud-tools" "/bash_completion.d" \
     # Ctop
     && wget -q -O "/cloud-tools/ctop" "https://github.com/bcicen/ctop/releases/download/v${CTOP_VERSION}/ctop-${CTOP_VERSION}-linux-amd64" \
     && chmod +x "/cloud-tools/ctop" \
@@ -106,23 +132,18 @@ RUN apk -q update \
     && wget -q -O "/cloud-tools/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
     && chmod +x "/cloud-tools/kubectl" \
     && /cloud-tools/kubectl completion bash > "/bash_completion.d/kubectl" \
-    # Kubectl Krew
-    && wget -q -O "/tmp/krew.tar.gz" "https://github.com/kubernetes-sigs/krew/releases/download/v${KUBECTL_KREW_VERSION}/krew-linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory "/tmp" --file="/tmp/krew.tar.gz" \
-    && /tmp/krew-linux_amd64 install krew > /dev/null \
-    && mv "/root/.krew"/* "/cloud-tools/.krew" \
     # K3d
     && wget -q -O "/cloud-tools/k3d" "https://github.com/k3d-io/k3d/releases/download/v${K3D_VERSION}/k3d-linux-amd64" \
     && chmod +x "/cloud-tools/k3d" \
     && /cloud-tools/k3d completion bash > "/bash_completion.d/k3d" \
     # Helm
     && wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory "/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
+    && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
     && chmod +x "/cloud-tools/helm" \
     && /cloud-tools/helm completion bash > "/bash_completion.d/helm" \
     # K9s
     && wget -q -O "k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory "/cloud-tools" --file="k9s.tar.gz" "k9s" \
+    && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --file="k9s.tar.gz" "k9s" \
     && chmod +x "/cloud-tools/k9s" \
     && /cloud-tools/k9s completion bash > "/bash_completion.d/k9s"
 
@@ -140,6 +161,7 @@ COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main
 ARG UBUNTU_DEV_VM_VERSION
+ARG VIRTUALENV_VERSION
 ARG UID=1001
 ENV USER=${image.user} \
     DISPLAY=${image.display}
@@ -171,7 +193,7 @@ RUN apt-get -qq update -y \
         # Postman dependency
         libnss3 \
         # Python
-        pipx \
+        python3-dev pipx \
         > /dev/null \
     # Custom repositories installation
     && add-apt-repository -y "ppa:mozillateam/ppa" > /dev/null \
@@ -260,11 +282,6 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && systemctl enable yad-panel.service > /dev/null \
     # Move bash_completion.d
     && mv "/tmp/all-tools/bash_completion.d"/* "/etc/bash_completion.d" \
-    # Move cloud-tools/.krew
-    && mv "/tmp/all-tools/cloud-tools/.krew" "/home/${USER}" \
-    && ln --symbolic --force "/home/${USER}/.krew/store/krew/$(ls "/home/${USER}/.krew/store/krew")/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
-    # Move cloud-tools
-    && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
     # Move dev-tools
     && mv "/tmp/all-tools/dev-tools"/* "/opt" \
     && ln --symbolic "/opt/intellij-idea/bin/idea" "/usr/local/bin/idea" \
@@ -272,9 +289,22 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     && ln --symbolic "/opt/kitty/bin/kitty" "/usr/local/bin/kitty" \
     && ln --symbolic "/opt/postman/Postman" "/usr/local/bin/postman" \
+    # Move sdkman
+    && mkdir --parents "/home/${USER}/.sdkman/candidates" \
+    && for dir in "/opt/sdkman"/*; do [ "$(basename "${dir}")" != "candidates" ] && ln -s "${dir}" "/home/${USER}/.sdkman/"; done \
+    && for dir in "/opt/sdkman/candidates"/*; do ln -s "${dir}" "/home/${USER}/.sdkman/candidates"; done \
+    # Move dev-tools/.krew
+    && mv "/tmp/all-tools/dev-tools/.krew" "/home/${USER}" \
+    && ln --symbolic "/opt/krew/store/krew" "/home/${USER}/.krew/store/krew" \
+    && ln --symbolic "$(ls "/opt/krew/store/krew")" "/opt/krew/store/krew/current" \
+    && ln --symbolic --force "/home/${USER}/.krew/store/krew/current/krew" "/home/${USER}/.krew/bin/kubectl-krew" \
+    && ln --symbolic "/opt/krew/index" "/home/${USER}/.krew/index" \
+    && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
+    # Move cloud-tools
+    && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
     # Corepack/Yarn configuration
     && mkdir --parents "/home/${USER}/.cache/node" \
-    && mv "/opt/corepack" "/home/${USER}/.cache/node" \
+    && ln --symbolic "/opt/node/.cache/corepack" "/home/${USER}/.cache/node/corepack" \
     && printf "enableTelemetry: 0" > "/home/${USER}/.yarnrc.yml" \
     # Docker configuration
     && usermod --append --groups "docker" "${USER}" \
@@ -290,10 +320,13 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && mv "/root/.gitconfig" "/home/${USER}" \
     # Maven configuration
     && mkdir --parents "/home/${USER}/.m2/repository" \
-    && cp "/opt/sdkman/candidates/maven/current/conf/settings.xml" "/opt/sdkman/candidates/maven/current/conf/toolchains.xml" \
+    && cp "/home/${USER}/.sdkman/candidates/maven/current/conf/settings.xml" "/home/${USER}/.sdkman/candidates/maven/current/conf/toolchains.xml" \
         "/home/${USER}/.m2" \
     # Python configuration
-    && su -c "pipx install virtualenv" "${USER}" \
+    && su -c "pipx install virtualenv==${VIRTUALENV_VERSION}" "${USER}" \
+    && mkdir "/opt/pipx" \
+    && mv "/home/${USER}/.local/share/pipx/venvs/virtualenv" "/opt/pipx" \
+    && ln --symbolic "/opt/pipx/virtualenv" "/home/${USER}/.local/share/pipx/venvs/virtualenv" \
     # Make sure everything in /home/${USER} belongs to ${USER}
     && chown --recursive "${USER}":"${USER}" "/home/${USER}" \
     # Make sure everything in /opt belongs to ${USER}

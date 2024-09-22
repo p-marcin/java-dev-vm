@@ -23,8 +23,8 @@ main() {
   logSection "APPS"
   logVersion "INTELLIJ IDEA" "$(getIntellijIdeaVersion)"
   logVersion "DBEAVER" "$(getDBeaverVersion)"
-  logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
   logVersion "POSTMAN" "$(getPostmanVersion)"
+  logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
   logSection "VERSION CONTROL"
   logVersion "GIT" "$(getGitVersion)"
   logVersion "GIT LFS" "$(getGitLfsVersion)"
@@ -131,14 +131,14 @@ getDBeaverVersion() {
     && grep "version=" "/opt/dbeaver/.eclipseproduct" | sed "s/.*=//"
 }
 
-getKeystoreExplorerVersion() {
-  isPackageInstalled "kse" \
-    && unzip -p "/opt/keystore-explorer/kse.jar" "org/kse/version.properties" | grep "KSE.Version" | sed "s/.*=//"
-}
-
 getPostmanVersion() {
   [[ -d "/opt/postman" ]] \
     && jq ".version" "/opt/postman/resources/app/package.json" | tr -d "\""
+}
+
+getKeystoreExplorerVersion() {
+  isPackageInstalled "kse" \
+    && unzip -p "/opt/keystore-explorer/kse.jar" "org/kse/version.properties" | grep "KSE.Version" | sed "s/.*=//"
 }
 
 getGitVersion() {
@@ -153,13 +153,13 @@ getGitLfsVersion() {
 
 getSdkManVersion() {
   isPackageInstalled "sdk" \
-    && cat "/opt/sdkman/var/version"
+    && cat "${HOME}/.sdkman/var/version"
 }
 
 getSdkManDependencyVersion() {
   if isPackageInstalled "sdk"; then
     local dependency="${1}"
-    readlink "/opt/sdkman/candidates/${dependency}/current"
+    readlink "${HOME}/.sdkman/candidates/${dependency}/current"
   fi
 }
 
