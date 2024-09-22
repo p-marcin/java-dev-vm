@@ -128,3 +128,11 @@ jobs:
           version: early-access
           arguments: release
           setup-java: false
+      - name: Upload JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jreleaser-release
+          path: |
+            out/jreleaser/trace.log
+            out/jreleaser/output.properties

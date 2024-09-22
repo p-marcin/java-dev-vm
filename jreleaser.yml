@@ -1,16 +1,10 @@
-environment:
-  properties:
-    project.name: java-dev-vm
-    repo.owner: p-marcin
-
 project:
-  name: '{{project.name}}'
+  name: java-dev-vm
   license: Apache-2.0
   versionPattern: CALVER:YY.0M.MICRO
 
 release:
   github:
-    owner: '{{repo.owner}}'
     releaseName: '{{tagName}}'
     overwrite: true
     issues:
@@ -19,11 +13,11 @@ release:
       formatted: ALWAYS
       preset: conventional-commits
       extraProperties:
-        categorizeScopes: 'true'
+        categorizeScopes: true
       contentTemplate: target/changelog.tpl
       categoryTitleFormat: '### {{categoryTitle}}'
       contributors:
         format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
       hide:
         contributors:
-          - 'p-marcin'
+          - p-marcin

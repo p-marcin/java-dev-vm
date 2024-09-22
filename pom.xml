@@ -284,9 +284,7 @@
                                 <replaceregexp file="batch-scripts/restart.bat" byline="true"
                                                match="imageName=(.*)" replace="imageName=${image.name}"/>
                                 <replaceregexp file="jreleaser.yml" byline="true"
-                                               match="project.name: (.*)" replace="project.name: ${image.name}"/>
-                                <replaceregexp file="jreleaser.yml" byline="true"
-                                               match="repo.owner: (.*)" replace="repo.owner: ${repo.owner}"/>
+                                               match="name: (.*)" replace="name: ${image.name}"/>
                             </target>
                         </configuration>
                     </execution>
