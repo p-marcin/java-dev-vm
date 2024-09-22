@@ -146,11 +146,14 @@ COPY --from=krew /.krew /dev-tools/.krew/
 COPY --from=krew /krew /dev-tools/krew/
 
 FROM alpine:latest AS cloud-tools
-ARG DOCKER_SCOUT_VERSION
+ARG GO_VERSION
 RUN apk -q update \
     && apk -q add --no-cache git \
     && mkdir --parents "/cloud-tools" "/docker/cli-plugins" "/bash_completion.d" \
-    && wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
+    && wget -q -O "go.tar.gz" "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+    && tar --extract --gzip --no-same-owner --exclude="go/doc" --directory="/cloud-tools" --file="go.tar.gz"
+ARG DOCKER_SCOUT_VERSION
+RUN wget -q -O "docker-scout.tar.gz" "https://github.com/docker/scout-cli/releases/download/v${DOCKER_SCOUT_VERSION}/docker-scout_${DOCKER_SCOUT_VERSION}_linux_amd64.tar.gz" \
     && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
     && chmod +x "/docker/cli-plugins/docker-scout"
 ARG KUBECTL_VERSION
@@ -340,6 +343,7 @@ RUN mv "/tmp/all-tools/docker-config"/* "/etc/docker" \
     && ln --symbolic "/opt/krew/receipts/krew.yaml" "/home/${USER}/.krew/receipts/krew.yaml" \
     # Move cloud-tools
     && mv "/tmp/all-tools/cloud-tools/docker" "/usr/local/lib" \
+    && mv "/tmp/all-tools/cloud-tools/go" "/usr/local" \
     && mv "/tmp/all-tools/cloud-tools"/* "/usr/local/bin" \
     # Corepack/Yarn configuration
     && mkdir --parents "/home/${USER}/.cache/node" \
