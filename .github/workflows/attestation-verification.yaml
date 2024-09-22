@@ -2,7 +2,7 @@ name: Attestation Verification
 
 on:
   workflow_run:
-    workflows: [ Build, Test and Push Images ]
+    workflows: [ "Build, Test and Push Images" ]
     types:
       - completed
   schedule:
