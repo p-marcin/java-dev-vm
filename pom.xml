@@ -24,6 +24,8 @@
         <postman.version>latest</postman.version>
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
         <keystore-explorer.version>5.5.3</keystore-explorer.version>
+        <!-- https://github.com/newren/git-filter-repo/releases -->
+        <git-filter-repo.version>2.45.0</git-filter-repo.version>
         <!-- https://github.com/cli/cli/releases -->
         <github-cli.version>2.55.0</github-cli.version>
         <!-- https://www.java.com/releases -->
@@ -255,6 +257,7 @@
                                 <argument>--build-arg=DBEAVER_VERSION=${dbeaver.version}</argument>
                                 <argument>--build-arg=POSTMAN_VERSION=${postman.version}</argument>
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
+                                <argument>--build-arg=GIT_FILTER_REPO_VERSION=${git-filter-repo.version}</argument>
                                 <argument>--build-arg=GITHUB_CLI_VERSION=${github-cli.version}</argument>
                                 <argument>--build-arg=JAVA_VERSION=${java.version}-${java.distribution}</argument>
                                 <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
