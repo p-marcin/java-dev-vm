@@ -28,6 +28,7 @@ main() {
   logSection "VERSION CONTROL"
   logVersion "GIT" "$(getGitVersion)"
   logVersion "GIT LFS" "$(getGitLfsVersion)"
+  logVersion "GITHUB CLI" "$(getGitHubCliVersion)"
   logSection "JAVA"
   logVersion "SDKMAN" "$(getSdkManVersion)"
   logVersion "JAVA" "$(getSdkManDependencyVersion "java")"
@@ -149,6 +150,11 @@ getGitVersion() {
 getGitLfsVersion() {
   isPackageInstalled "git-lfs" \
     && git lfs version | sed "s/.*\///;s/ (.*//"
+}
+
+getGitHubCliVersion() {
+  isPackageInstalled "gh" \
+    && gh --version | grep gh | sed "s/.*version //;s/ (.*//"
 }
 
 getSdkManVersion() {
