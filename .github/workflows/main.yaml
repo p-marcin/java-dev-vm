@@ -8,6 +8,9 @@ jobs:
   main:
     name: Build and Push Images
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      attestations: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,7 +25,27 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Build and Push -community Image
+      - name: Build and Push Community Image
         run: mvn clean package -B -Pcommunity,github-actions
-      - name: Build and Push -ultimate Image
+      - name: Extract digest of Community Image
+        id: digest_community
+        run: |
+          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.3-community --format "{{ json .Manifest.Digest }}" | jq -r)
+          echo "digest=${digest}" >> ${GITHUB_OUTPUT}
+      - name: Attest Provenance of Community Image
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: index.docker.io/javowiec/ubuntu-dev-vm
+          subject-digest: ${{ steps.digest_community.outputs.digest }}
+      - name: Build and Push Ultimate Image
         run: mvn clean package -B -Pultimate,github-actions,prune-builder
+      - name: Extract digest of Ultimate Image
+        id: digest_ultimate
+        run: |
+          digest=$(docker buildx imagetools inspect javowiec/ubuntu-dev-vm:24.09.3-ultimate --format "{{ json .Manifest.Digest }}" | jq -r)
+          echo "digest=${digest}" >> ${GITHUB_OUTPUT}
+      - name: Attest Provenance of Ultimate Image
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: index.docker.io/javowiec/ubuntu-dev-vm
+          subject-digest: ${{ steps.digest_ultimate.outputs.digest }}

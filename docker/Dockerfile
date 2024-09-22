@@ -1,4 +1,5 @@
 ARG UBUNTU_VERSION=${ubuntu.version}
+ARG BUILDKIT_SBOM_SCAN_CONTEXT=true
 FROM alpine:latest AS kitty
 ARG KITTY_VERSION
 RUN wget -q -O "kitty.txz" "https://github.com/kovidgoyal/kitty/releases/download/v${KITTY_VERSION}/kitty-${KITTY_VERSION}-x86_64.txz" \
@@ -170,10 +171,23 @@ COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
 FROM dokken/ubuntu-${UBUNTU_VERSION}:main
 ARG UBUNTU_DEV_VM_VERSION
 ARG VIRTUALENV_VERSION
+ARG BUILD_DATE
+ARG GIT_REVISION
 ARG UID=1001
 ENV USER=${image.user} \
     DISPLAY=${image.display}
-LABEL maintainer="github.com/P-Marcin"
+LABEL maintainer="https://github.com/P-Marcin" \
+      org.opencontainers.image.authors="https://github.com/P-Marcin" \
+      org.opencontainers.image.vendor="P-Marcin" \
+      org.opencontainers.image.title="${image.namespace}/${project.artifactId}" \
+      org.opencontainers.image.description="Ubuntu DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
+      org.opencontainers.image.ref.name="${project.artifactId}" \
+      org.opencontainers.image.version="v${project.version}" \
+      org.opencontainers.image.source="https://github.com/P-Marcin/${project.artifactId}" \
+      org.opencontainers.image.url="https://hub.docker.com/r/${image.namespace}/${project.artifactId}" \
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.revision="${GIT_REVISION}"
 
 # System setup
 RUN apt-get -qq update -y \
@@ -242,8 +256,8 @@ fi\n" >> "/home/${USER}/.bashrc" \
     && printf "\nif [ -f ~/.environment ]; then\n\
     . ~/.environment\n\
 fi\n" >> "/root/.bashrc" \
-    # Create .ubuntu-dev-vm.version file
-    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/.ubuntu-dev-vm.version" \
+    # Create .${project.artifactId}.version file
+    && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/.${project.artifactId}.version" \
     # Cleanup
     && apt-get -qq autoremove -y --purge \
     && apt-get -qq clean -y \
