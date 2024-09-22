@@ -4,7 +4,8 @@ ARG BUILDKIT_SBOM_SCAN_CONTEXT=${docker.buildx.build.sbom.scan.context}
 
 FROM ubuntu:${UBUNTU_VERSION} AS dependencies
 ENV DEBIAN_FRONTEND=noninteractive \
-    DEBCONF_NOWARNINGS="yes"
+    DEBCONF_NOWARNINGS="yes" \
+    NO_AT_BRIDGE=1
 RUN echo "> Preparation..." \
         && apt-get -qq update -y \
         && apt-get install -y --no-install-recommends ca-certificates curl git unzip wget xz-utils zip > /dev/null \
