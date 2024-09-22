@@ -1,29 +1,32 @@
 <p align="center">
-    <img src="docs/images/logo.png" alt="Ubuntu DEV VM"/>
+    <img src="docs/images/logo.png" alt="Java DEV VM"/>
 </p>
 
 <p align="center">
-  <a href="https://hub.docker.com/r/javowiec/ubuntu-dev-vm" rel="noreferrer">
-      <img src="https://img.shields.io/docker/pulls/javowiec/ubuntu-dev-vm?label=Docker%20Pulls&logo=docker&logoColor=white&color=1350CC" alt="Docker Pulls"/>
+  <a href="src/docker/Dockerfile" rel="noreferrer">
+      <img src="https://img.shields.io/badge/Dockerfile-1350CC?logo=docker&logoColor=white" alt="Dockerfile"/>
   </a>
-  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases" rel="noreferrer">
-      <img src="https://img.shields.io/github/v/release/P-Marcin/ubuntu-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
+  <a href="https://hub.docker.com/r/javowiec/java-dev-vm" rel="noreferrer">
+      <img src="https://img.shields.io/docker/pulls/javowiec/java-dev-vm?label=Docker%20Pulls&logo=docker&logoColor=white&color=1350CC" alt="Docker Pulls"/>
+  </a>
+  <a href="https://github.com/P-Marcin/java-dev-vm/releases" rel="noreferrer">
+      <img src="https://img.shields.io/github/v/release/P-Marcin/java-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
   </a>
   <a href="LICENSE" rel="noreferrer">
-      <img src="https://img.shields.io/github/license/P-Marcin/ubuntu-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
+      <img src="https://img.shields.io/github/license/P-Marcin/java-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
   <br>
-  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
+  <a href="https://github.com/P-Marcin/java-dev-vm/actions/workflows/main.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/java-dev-vm/main.yaml?label=Build,%20Test%20and%20Push%20Images&logo=github&logoColor=white" alt="Build, Test and Push Images"/>
   </a>
-  <a href="https://github.com/P-Marcin/ubuntu-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
-      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/ubuntu-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
+  <a href="https://github.com/P-Marcin/java-dev-vm/actions/workflows/attestation-verification.yaml" rel="noreferrer">
+      <img src="https://img.shields.io/github/actions/workflow/status/P-Marcin/java-dev-vm/attestation-verification.yaml?label=Attestation%20Verification&logo=github&logoColor=white" alt="Attestation Verification"/>
   </a>
 </p>
 
 ## :pushpin: Introduction
 
-Ubuntu DEV VM for Java Developers running on Windows in container.
+Java DEV VM for Java Developers running on Windows in container.
 
 It requires **3** dependencies:
 
@@ -34,9 +37,9 @@ It requires **3** dependencies:
   containerized applications and microservices. It provides a straightforward GUI (Graphical User Interface) that lets
   you manage your containers, applications, and images directly from your machine
 * [**MobaXterm Home Edition**](https://mobaxterm.mobatek.net/download.html) (X11 server) - lets you display
-  applications (e.g. [IntelliJ IDEA](https://www.jetbrains.com/idea/)) from Ubuntu DEV VM on your Windows
+  applications (e.g. [IntelliJ IDEA](https://www.jetbrains.com/idea/)) from Java DEV VM on your Windows
 
-Ubuntu DEV VM image can be pulled from DockerHub: https://hub.docker.com/r/javowiec/ubuntu-dev-vm:
+Java DEV VM image can be pulled from DockerHub: https://hub.docker.com/r/javowiec/java-dev-vm:
 
 * `-community` version contains IntelliJ
   IDEA [Community Edition](https://www.jetbrains.com/products/compare/?product=idea&product=idea-ce)
@@ -106,16 +109,16 @@ Then, to turn MobaXterm window back to tray icon go to: View -> Iconify MobaXter
 
 ### 3. Start
 
-Make sure MobaXterm is started. Then start Docker Desktop. After that start Ubuntu DEV VM container. Enjoy!
+Make sure MobaXterm is started. Then start Docker Desktop. After that start Java DEV VM container. Enjoy!
 
-See example batch script which starts or restarts Ubuntu DEV VM: [restart.bat](batch-scripts/restart.bat). Change the
+See example batch script which starts or restarts Java DEV VM: [restart.bat](batch-scripts/restart.bat). Change the
 value of `imageVersion` variable if there is newer version available.
 
 Batch scripts can be executed on Windows in CMD/PowerShell or with double mouse click.
 
 ### 4. Quit
 
-Quit Docker Desktop to quit Ubuntu DEV VM.
+Quit Docker Desktop to quit Java DEV VM.
 
 ## :pushpin: Persisting changes
 
@@ -127,9 +130,9 @@ In [restart.bat](batch-scripts/restart.bat) I defined **5** volumes:
 * `projects` under `/home/dev/projects` - a place where you can start your projects
 * `maven` under `/home/dev/.m2/repository` - local [Maven](https://maven.apache.org/) repository where artifacts are
   stored
-* `home` under `/home/dev` - home directory of Ubuntu DEV VM user
+* `home` under `/home/dev` - home directory of Java DEV VM user
 * `docker` under `/var/lib/docker` - a place where docker stores the data (e.g. downloaded images)
-* `/mnt/shared` - a shared place between Ubuntu DEV VM and `C:\Users\${username}\shared` on Windows
+* `/mnt/shared` - a shared place between Java DEV VM and `C:\Users\${username}\shared` on Windows
 
 ## :pushpin: Known Issues
 
@@ -173,7 +176,7 @@ After:
 
 ### Firefox can crash if shared memory size is too low
 
-To prevent crashes from happening when running Firefox inside Ubuntu DEV VM, the size of the shared memory located at
+To prevent crashes from happening when running Firefox inside Java DEV VM, the size of the shared memory located at
 `/dev/shm` must be increased. The issue is documented [here](https://bugzilla.mozilla.org/show_bug.cgi?id=1338771#c10).
 
 By default, the size in Docker containers is **64MB**, which is not enough. It is recommended to use a size of **2GB**.
@@ -182,7 +185,7 @@ This value is arbitrary, but known to work well. Setting the size of `/dev/shm` 
 
 ### Missing `overlay2` Storage Driver
 
-To check the Storage Driver inside Ubuntu DEV VM run command: `docker info 2>/dev/null | grep "Storage Driver"`. If it
+To check the Storage Driver inside Java DEV VM run command: `docker info 2>/dev/null | grep "Storage Driver"`. If it
 is not `overlay2`, it means you're missing `--mount source=docker,target=/var/lib/docker` parameter in `docker run`
 command. It is already added to [restart.bat](batch-scripts/restart.bat).
 
@@ -191,13 +194,13 @@ issues when creating a k3s kubernetes cluster with [k3d](https://k3d.io).
 
 ## :pushpin: Useful Scripts
 
-On Ubuntu DEV VM there are some useful scripts which you can use. See [src/docker/scripts](src/docker/scripts).
+On Java DEV VM there are some useful scripts which you can use. See [src/docker/scripts](src/docker/scripts).
 
 <details>
   <summary>Click here to see an example</summary>
   <br>
   <p>If you want to check versions installed (see
-  also <a href="https://github.com/P-Marcin/ubuntu-dev-vm/releases">Releases</a> tab), type:</p>
+  also <a href="https://github.com/P-Marcin/java-dev-vm/releases">Releases</a> tab), type:</p>
   <img src="docs/images/versions.gif" alt="Versions" width="500px">
 </details>
 
@@ -232,10 +235,10 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 ```
 
 If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and
-remove `buildx_buildkit_ubuntu-dev-vm-builder0_state` volume manually.
+remove `buildx_buildkit_java-dev-vm-builder0_state` volume manually.
 
 Older releases are removed from DockerHub. If you want to use older release for whatever reason, you need to build it
-yourself. In the [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab you can find zip with the source
+yourself. In the [Releases](https://github.com/P-Marcin/java-dev-vm/releases) tab you can find zip with the source
 code.
 
 ## 💖 Support

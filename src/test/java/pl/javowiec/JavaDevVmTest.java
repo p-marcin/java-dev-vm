@@ -16,10 +16,10 @@ import static pl.javowiec.util.CommandExecutor.USER_HOME;
 import static pl.javowiec.util.FileProperties.MAVEN;
 
 /**
- * Ubuntu DEV VM Tests
+ * Java DEV VM Tests
  */
 @Testcontainers
-class UbuntuDevVmTest {
+class JavaDevVmTest {
 
     private static final String IMAGE_TAG = MAVEN.getProperty("image.namespace")
             + "/" + MAVEN.getProperty("image.name")
@@ -28,21 +28,21 @@ class UbuntuDevVmTest {
             + MAVEN.getProperty("image.tag.edition");
 
     @Container
-    private static final GenericContainer<?> UBUNTU_DEV_VM = new GenericContainer<>(DockerImageName.parse(IMAGE_TAG))
+    private static final GenericContainer<?> JAVA_DEV_VM = new GenericContainer<>(DockerImageName.parse(IMAGE_TAG))
             .withPrivilegedMode(true)
             .withCreateContainerCmdModifier(cmd -> cmd.withVolumes(new Volume("/var/lib/docker")));
 
-    private final CommandExecutor commandExecutor = new CommandExecutor(UBUNTU_DEV_VM);
+    private final CommandExecutor commandExecutor = new CommandExecutor(JAVA_DEV_VM);
 
     @Test
     void testRunningAndHealthy() {
-        assertThat(UBUNTU_DEV_VM.isPrivilegedMode()).isTrue();
-        assertThat(UBUNTU_DEV_VM.isRunning()).isTrue();
+        assertThat(JAVA_DEV_VM.isPrivilegedMode()).isTrue();
+        assertThat(JAVA_DEV_VM.isRunning()).isTrue();
     }
 
     @Test
-    void testUbuntuDevVmVersion() throws IOException, InterruptedException {
-        commandExecutor.assertVersionEquals("image.version", "cat \"/etc/versions/ubuntu-dev-vm.version\"");
+    void testJavaDevVmVersion() throws IOException, InterruptedException {
+        commandExecutor.assertVersionEquals("image.version", "cat \"/etc/versions/java-dev-vm.version\"");
     }
 
     @Test

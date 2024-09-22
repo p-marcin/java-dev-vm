@@ -169,7 +169,7 @@ RUN echo "> Preparation..." \
         && if [ -d "/intellij-idea/help" ]; then rm -r "/intellij-idea/help"; fi
 
 FROM ubuntu:${UBUNTU_VERSION} AS main
-ARG UBUNTU_DEV_VM_VERSION
+ARG JAVA_DEV_VM_VERSION
 ARG GIT_REVISION
 ARG UID=1001
 ENV USER=${image.user} \
@@ -179,7 +179,7 @@ ENV USER=${image.user} \
 LABEL org.opencontainers.image.authors="https://github.com/${repo.owner}" \
       org.opencontainers.image.vendor="${repo.owner}" \
       org.opencontainers.image.title="${image.namespace}/${image.name}" \
-      org.opencontainers.image.description="Ubuntu DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
+      org.opencontainers.image.description="Java DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
       org.opencontainers.image.ref.name="${image.name}" \
       org.opencontainers.image.version="v${image.version}" \
       org.opencontainers.image.source="https://github.com/${repo.owner}/${image.name}" \
@@ -287,7 +287,7 @@ fi\n" >> "/home/${USER}/.bashrc" \
 fi\n" >> "/root/.bashrc" \
     && echo "> Create ${image.name}.version file..." \
         && mkdir "/etc/versions" \
-        && printf "${UBUNTU_DEV_VM_VERSION}\n" > "/etc/versions/${image.name}.version" \
+        && printf "${JAVA_DEV_VM_VERSION}\n" > "/etc/versions/${image.name}.version" \
     && echo "> Cleanup..." \
         && apt-get -qq autoremove -y --purge \
         && apt-get -qq clean -y \
