@@ -15,7 +15,7 @@
              https://github.com/test-kitchen/dokken-images/blob/main/ubuntu-24.04/Dockerfile -->
         <ubuntu.version>24.04</ubuntu.version>
         <!-- https://github.com/kovidgoyal/kitty/releases -->
-        <kitty.version>0.36.1</kitty.version>
+        <kitty.version>0.36.2</kitty.version>
         <!-- https://www.jetbrains.com/idea/download/other.html -->
         <intellij-idea.version>2024.2.1</intellij-idea.version>
         <!-- https://github.com/dbeaver/dbeaver/releases -->
