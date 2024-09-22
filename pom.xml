@@ -64,8 +64,6 @@
         <k3d.version>5.7.3</k3d.version>
         <!-- https://github.com/helm/helm/releases -->
         <helm.version>3.15.4</helm.version>
-        <!-- https://github.com/derailed/k9s/releases -->
-        <k9s.version>0.32.5</k9s.version>
 
         <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-antrun-plugin -->
         <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
@@ -274,7 +272,6 @@
                                 <argument>--build-arg=KUBECTL_KREW_VERSION=${kubectl-krew.version}</argument>
                                 <argument>--build-arg=K3D_VERSION=${k3d.version}</argument>
                                 <argument>--build-arg=HELM_VERSION=${helm.version}</argument>
-                                <argument>--build-arg=K9S_VERSION=${k9s.version}</argument>
                                 <argument>--tag=${image.tag}-${image.tag.edition}</argument>
                                 <argument>${image.target}</argument>
                             </arguments>

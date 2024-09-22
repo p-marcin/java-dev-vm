@@ -58,7 +58,6 @@ main() {
   logVersion "KUBECTL KREW" "$(getKubectlKrewVersion)"
   logVersion "K3D" "$(getK3dVersion)"
   logVersion "HELM" "$(getHelmVersion)"
-  logVersion "K9S" "$(getK9sVersion)"
   logSeparator
 }
 
@@ -285,11 +284,6 @@ getK3dVersion() {
 getHelmVersion() {
   isPackageInstalled "helm" \
     && helm version --template="Version: {{.Version}}" | sed "s/.*v//"
-}
-
-getK9sVersion() {
-  isPackageInstalled "k9s" \
-    && k9s version --short | grep "Version" | sed "s/.*v//"
 }
 
 isPackageInstalled() {

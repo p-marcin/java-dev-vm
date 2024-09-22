@@ -166,11 +166,6 @@ RUN wget -q -O "helm.tar.gz" "https://get.helm.sh/helm-v${HELM_VERSION}-linux-am
     && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --strip-components=1 --file="helm.tar.gz" "linux-amd64/helm" \
     && chmod +x "/cloud-tools/helm" \
     && /cloud-tools/helm completion bash > "/bash_completion.d/helm"
-ARG K9S_VERSION
-RUN wget -q -O "k9s.tar.gz" "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz" \
-    && tar --extract --gzip --no-same-owner --directory="/cloud-tools" --file="k9s.tar.gz" "k9s" \
-    && chmod +x "/cloud-tools/k9s" \
-    && /cloud-tools/k9s completion bash > "/bash_completion.d/k9s"
 
 FROM scratch AS all-tools
 COPY --from=dev-tools /dev-tools /all-tools/dev-tools/
