@@ -1,15 +1,15 @@
 package pl.javowiec.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.testcontainers.containers.ExecConfig;
-import org.testcontainers.containers.GenericContainer;
+import static org.assertj.core.api.Assertions.assertThat;
+import static pl.javowiec.util.FileProperties.MAVEN;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static pl.javowiec.util.FileProperties.MAVEN;
+import org.apache.commons.lang3.StringUtils;
+import org.testcontainers.containers.ExecConfig;
+import org.testcontainers.containers.GenericContainer;
 
 /**
  * Command Executor is responsible for executing commands in a Docker Container
@@ -78,10 +78,19 @@ public record CommandExecutor(GenericContainer<?> container) {
     public void assertVersionEquals(String mavenProperty, String command) throws IOException, InterruptedException {
         GenericContainer.ExecResult version = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
         assertThat(version.getExitCode()).isZero();
-        String convertedMavenProperty = Arrays.stream(StringUtils.split(mavenProperty, "&"))
+        assertThat(version.getStdout()).isEqualToIgnoringNewLines(convertMavenProperty(mavenProperty));
+    }
+
+    private String convertMavenProperty(String mavenProperty) {
+        return Arrays.stream(StringUtils.split(mavenProperty, "&"))
                 .map(MAVEN::getProperty)
                 .collect(Collectors.joining("-"));
-        assertThat(version.getStdout()).isEqualToIgnoringNewLines(convertedMavenProperty);
+    }
+
+    public void assertVersionStartsWith(String mavenProperty, String command) throws IOException, InterruptedException {
+        GenericContainer.ExecResult version = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
+        assertThat(version.getExitCode()).isZero();
+        assertThat(version.getStdout()).startsWith(MAVEN.getProperty(mavenProperty));
     }
 
     public void assertVersionNotEmpty(String command) throws IOException, InterruptedException {
