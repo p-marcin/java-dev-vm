@@ -7,6 +7,8 @@ jobs:
     name: Build, Test and Push RC Images
     runs-on: ubuntu-latest
     steps:
+      - name: Prune Docker
+        run: docker system prune --all --volumes --force
       - name: Checkout
         uses: actions/checkout@v4
       - name: Extract properties
@@ -42,14 +44,42 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and Push RC Community Image
-        run: mvn clean install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,community,github-actions,skip-remove-builder
+        run: |
+          mvn clean install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,community,github-actions,skip-remove-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
       - name: Test RC Community Image
-        run: mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,community,skip-rebuild
+        run: |
+          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,community,skip-rebuild
+          df -h | grep -A 1 "Filesystem"; docker system df
       - name: Remove RC Community Image from local repository
-        run: docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community
+        run: |
+          docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Verify Provenance attached to Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to Community Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-community \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
       - name: Build and Push RC Ultimate Image
-        run: mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,prune-builder
+        run: |
+          mvn install -B -DskipTests -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,github-actions,skip-rebuild,prune-builder
+          df -h | grep -A 1 "Filesystem"; docker system df
       - name: Test RC Ultimate Image
-        run: mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,skip-rebuild
+        run: |
+          mvn test -B -Dimage.version=${IMAGE_VERSION} -Prc,ultimate,skip-rebuild
+          df -h | grep -A 1 "Filesystem"; docker system df
       - name: Remove RC Ultimate Image from local repository
-        run: docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate
+        run: |
+          docker image rm ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate
+          df -h | grep -A 1 "Filesystem"; docker system df
+      - name: Verify Provenance attached to Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate \
+            --format "{{ json .Provenance.SLSA }}" | grep -q "github.com/${GITHUB_REPOSITORY_OWNER}"
+      - name: Verify SBOM attached to Ultimate Image
+        run: |
+          docker buildx imagetools inspect ${IMAGE_NAMESPACE}/${IMAGE_NAME}:${IMAGE_VERSION}-rc-ultimate \
+            --format "{{ json .SBOM.SPDX }}" | grep -q "sdkman/candidates/java"
