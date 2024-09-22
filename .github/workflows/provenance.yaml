@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Verify Community Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.3-community --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.4-community --owner "${GITHUB_REPOSITORY_OWNER}"
       - name: Verify Ultimate Image
         run: |
-          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.3-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
+          gh attestation verify oci://docker.io/javowiec/ubuntu-dev-vm:24.09.4-ultimate --owner "${GITHUB_REPOSITORY_OWNER}"
