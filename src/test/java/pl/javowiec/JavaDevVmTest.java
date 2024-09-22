@@ -1,19 +1,20 @@
 package pl.javowiec;
 
-import com.github.dockerjava.api.model.Volume;
+import static org.assertj.core.api.Assertions.assertThat;
+import static pl.javowiec.util.CommandExecutor.IMAGE_USER;
+import static pl.javowiec.util.CommandExecutor.USER_HOME;
+import static pl.javowiec.util.FileProperties.MAVEN;
+
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
+
+import com.github.dockerjava.api.model.Volume;
 import pl.javowiec.util.CommandExecutor;
-
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static pl.javowiec.util.CommandExecutor.IMAGE_USER;
-import static pl.javowiec.util.CommandExecutor.USER_HOME;
-import static pl.javowiec.util.FileProperties.MAVEN;
 
 /**
  * Java DEV VM Tests
@@ -128,6 +129,18 @@ class JavaDevVmTest {
     }
 
     @Test
+    void testJava() throws IOException, InterruptedException {
+        commandExecutor.assertPathExistsAndContains("/opt/java", "current",
+                MAVEN.getProperty("jdk-lts.version") + "-" + MAVEN.getProperty("jdk.distribution"),
+                MAVEN.getProperty("jdk-sts.version") + "-" + MAVEN.getProperty("jdk.distribution"));
+        commandExecutor.assertPathExistsAndDoesNotContain(USER_HOME + "/.sdkman/candidates", "java");
+        commandExecutor.assertVersionEquals("jdk-lts.version&jdk.distribution", "readlink " + "/opt/java/current");
+        commandExecutor.assertVersionEquals("jdk-lts.version", "java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
+        commandExecutor.assertVersionEquals("jdk-sts.version", "/opt/java/" + MAVEN.getProperty("jdk-sts.version")
+                + "-" + MAVEN.getProperty("jdk.distribution") + "/bin/java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
+    }
+
+    @Test
     void testSdkMan() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/sdkman", "bin", "src", "candidates");
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.sdkman/bin", "/opt/sdkman/bin");
@@ -141,14 +154,6 @@ class JavaDevVmTest {
         commandExecutor.assertFileContains(USER_HOME + "/.sdkman/src", 2, "\\$(find", "\\$(find -L");
         commandExecutor.assertVersionNotEmpty("cat " + USER_HOME + "/.sdkman/var/version");
         commandExecutor.assertVersionNotEmpty("sdk version | grep \"script\" | sed \"s/.* //\"");
-    }
-
-    @Test
-    void testJava() throws IOException, InterruptedException {
-        commandExecutor.assertPathExistsAndContains("/opt/sdkman/candidates", "java");
-        commandExecutor.assertSymLinkEquals(USER_HOME + "/.sdkman/candidates/java", "/opt/sdkman/candidates/java");
-        commandExecutor.assertVersionEquals("jdk.version&jdk.distribution", "readlink " + USER_HOME + "/.sdkman/candidates/java/current");
-        commandExecutor.assertVersionEquals("jdk.version", "java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
     }
 
     @Test

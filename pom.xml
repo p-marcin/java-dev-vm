@@ -28,7 +28,8 @@
         <!-- https://github.com/cli/cli/releases -->
         <github-cli.version>2.57.0</github-cli.version>
         <!-- https://www.java.com/releases -->
-        <jdk.version>21.0.4</jdk.version>
+        <jdk-lts.version>21.0.4</jdk-lts.version>
+        <jdk-sts.version>23</jdk-sts.version>
         <jdk.distribution>oracle</jdk.distribution>
         <!-- https://maven.apache.org/docs/history.html -->
         <!-- Also regenerate Maven Wrapper: ./regenerate-mvn-wrapper.sh -->
@@ -390,7 +391,8 @@
                                 <argument>--build-arg=KEYSTORE_EXPLORER_VERSION=${keystore-explorer.version}</argument>
                                 <argument>--build-arg=GIT_FILTER_REPO_VERSION=${git-filter-repo.version}</argument>
                                 <argument>--build-arg=GITHUB_CLI_VERSION=${github-cli.version}</argument>
-                                <argument>--build-arg=JDK_VERSION=${jdk.version}-${jdk.distribution}</argument>
+                                <argument>--build-arg=JDK_LTS_VERSION=${jdk-lts.version}-${jdk.distribution}</argument>
+                                <argument>--build-arg=JDK_STS_VERSION=${jdk-sts.version}-${jdk.distribution}</argument>
                                 <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
                                 <argument>--build-arg=SPRING_BOOT_CLI_VERSION=${spring-boot-cli.version}</argument>
                                 <argument>--build-arg=ASYNC_PROFILER_VERSION=${async-profiler.version}</argument>

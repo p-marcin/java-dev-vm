@@ -9,7 +9,8 @@ ARG POSTMAN_VERSION
 ARG KEYSTORE_EXPLORER_VERSION
 ARG GIT_FILTER_REPO_VERSION
 ARG GITHUB_CLI_VERSION
-ARG JDK_VERSION
+ARG JDK_LTS_VERSION
+ARG JDK_STS_VERSION
 ARG MAVEN_VERSION
 ARG SPRING_BOOT_CLI_VERSION
 ARG ASYNC_PROFILER_VERSION
@@ -50,7 +51,7 @@ RUN echo "> Preparation..." \
         && mkdir "/dev-tools/keystore-explorer" \
         && KEYSTORE_EXPLORER_VERSION_NO_DOTS=$(printf "${KEYSTORE_EXPLORER_VERSION}" | tr -d ".") \
         && wget -q -O "kse.zip" "https://github.com/kaikramer/keystore-explorer/releases/download/v${KEYSTORE_EXPLORER_VERSION}/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}.zip" \
-        && unzip -q "kse.zip" -x "*.exe" -x "*.dll" -d "/tmp" \
+        && unzip -q "kse.zip" -x "*.exe" "*.dll" -d "/tmp" \
         && mv "/tmp/kse-${KEYSTORE_EXPLORER_VERSION_NO_DOTS}"/* "/dev-tools/keystore-explorer" \
     && echo "> Install Git Filter-Repo..." \
         && wget -q -O "git-filter-repo.tar.xz" "https://github.com/newren/git-filter-repo/releases/download/v${GIT_FILTER_REPO_VERSION}/git-filter-repo-${GIT_FILTER_REPO_VERSION}.tar.xz" \
@@ -62,6 +63,18 @@ RUN echo "> Preparation..." \
         && tar --extract --gzip --no-same-owner --directory="/binaries" --strip-components=2 --file="github-cli.tar.gz" "gh_${GITHUB_CLI_VERSION}_linux_amd64/bin/gh" \
         && chmod +x "/binaries/gh" \
         && /binaries/gh completion -s bash > "/bash_completion.d/gh" \
+    && echo "> Install Java LTS..." \
+        && mkdir --parents "/dev-tools/java/${JDK_LTS_VERSION}" \
+        && JDK_LTS_MAJOR_VERSION=$(printf "${JDK_LTS_VERSION}" | sed "s/\..*//;s/-.*//") \
+        && JDK_LTS_VERSION_NO_SUFFIX=$(printf "${JDK_LTS_VERSION}" | sed "s/-.*//") \
+        && wget -q -O "java-lts.tar.gz" "https://download.oracle.com/java/${JDK_LTS_MAJOR_VERSION}/archive/jdk-${JDK_LTS_VERSION_NO_SUFFIX}_linux-x64_bin.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${JDK_LTS_VERSION}" --strip-components=1 --file="java-lts.tar.gz" \
+    && echo "> Install Java STS..." \
+        && mkdir "/dev-tools/java/${JDK_STS_VERSION}" \
+        && JDK_STS_MAJOR_VERSION=$(printf "${JDK_STS_VERSION}" | sed "s/\..*//;s/-.*//") \
+        && JDK_STS_VERSION_NO_SUFFIX=$(printf "${JDK_STS_VERSION}" | sed "s/-.*//") \
+        && wget -q -O "java-sts.tar.gz" "https://download.oracle.com/java/${JDK_STS_MAJOR_VERSION}/archive/jdk-${JDK_STS_VERSION_NO_SUFFIX}_linux-x64_bin.tar.gz" \
+        && tar --extract --gzip --no-same-owner --directory="/dev-tools/java/${JDK_STS_VERSION}" --strip-components=1 --file="java-sts.tar.gz" \
     && echo "> Install SdkMan..." \
         && export SDKMAN_DIR="/dev-tools/sdkman" \
         && wget -q -O - "https://get.sdkman.io" | bash > /dev/null 2>&1 \
@@ -73,9 +86,6 @@ RUN echo "> Preparation..." \
         && sed --in-place "/sdkman_selfupdate_feature=/c sdkman_selfupdate_feature=false" "${SDKMAN_DIR}/etc/config" \
         && sed --in-place 's/\bfind\b/find -L/g' "${SDKMAN_DIR}/bin/sdkman-init.sh" "${SDKMAN_DIR}/src/sdkman-upgrade.sh" "${SDKMAN_DIR}/src/sdkman-list.sh" \
         && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
-    && echo \"> Install Java...\" \
-        && sdk flush > /dev/null 2>&1 \
-        && sdk install \"java\" \"${JDK_VERSION}\" > /dev/null 2>&1 \
     && echo \"> Install Maven...\" \
         && sdk install \"maven\" \"${MAVEN_VERSION}\" > /dev/null 2>&1 \
     && echo \"> Install Spring Boot CLI...\" \
@@ -311,6 +321,7 @@ COPY --from=dependencies                            /yad-panel/config           
 COPY --chmod=644                                    home-config/.root_environment   /root/.environment
 COPY --chmod=644                                    docker-config                   /etc/docker/
 COPY --chmod=644                                    yad-panel/service               /etc/systemd/system/
+ARG JDK_LTS_VERSION
 ARG VIRTUALENV_VERSION
 RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-user.js \
     echo "> Configure Firefox profile..." \
@@ -334,6 +345,8 @@ RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-use
         && ln --symbolic "/opt/keystore-explorer/kse.sh" "/usr/local/bin/kse" \
     && echo "> Configure Git..." \
         && sudo -u ${USER} git config --global "init.defaultBranch" "main" \
+    && echo "> Configure Java LTS..." \
+        && ln --symbolic "${JDK_LTS_VERSION}" "/opt/java/current" \
     && echo "> Configure SdkMan..." \
         && mkdir --parents "/home/${USER}/.sdkman/candidates" \
         && for dir in "/opt/sdkman"/*; do if [ "$(basename "${dir}")" != "candidates" ]; then ln -s "${dir}" "/home/${USER}/.sdkman/"; fi; done \

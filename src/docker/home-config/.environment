@@ -7,6 +7,9 @@ export GOPATH="${HOME}/.go"
 if [[ ":${PATH}:" != *":${HOME}/.local/bin:"* ]]; then
     export PATH="${HOME}/.local/bin:${PATH}"
 fi
+if [[ ":${PATH}:" != *":/opt/java/current/bin:"* ]]; then
+    export PATH="/opt/java/current/bin:${PATH}"
+fi
 if [[ ":${PATH}:" != *":/opt/kafka/bin:"* ]]; then
     export PATH="/opt/kafka/bin:${PATH}"
 fi

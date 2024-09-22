@@ -31,8 +31,9 @@ main() {
   logVersion "GIT LFS" "$(getGitLfsVersion)"
   logVersion "GITHUB CLI" "$(getGitHubCliVersion)"
   logSection "JAVA"
+  logVersion "JAVA LTS" "$(getJavaLtsVersion)"
+  logVersion "JAVA STS" "$(getJavaStsVersion)"
   logVersion "SDKMAN" "$(getSdkManVersion)"
-  logVersion "JAVA" "$(getSdkManDependencyVersion "java")"
   logVersion "MAVEN" "$(getSdkManDependencyVersion "maven")"
   logVersion "SPRING BOOT CLI" "$(getSdkManDependencyVersion "springboot")"
   logVersion "ASYNC PROFILER" "$(getAsyncProfilerVersion)"
@@ -167,6 +168,16 @@ getGitHubCliVersion() {
     && gh --version | grep gh | sed "s/.*version //;s/ (.*//"
 }
 
+getJavaLtsVersion() {
+  isPackageInstalled "java" \
+    && java --version | grep "java" | sed "s/java //;s/ .*//"
+}
+
+getJavaStsVersion() {
+  [[ -x "/opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java" ]] \
+    && /opt/java/${jdk-sts.version}-${jdk.distribution}/bin/java --version | grep "java" | sed "s/java //;s/ .*//"
+}
+
 getSdkManVersion() {
   isPackageInstalled "sdk" \
     && cat "${HOME}/.sdkman/var/version"
@@ -175,7 +186,7 @@ getSdkManVersion() {
 getSdkManDependencyVersion() {
   if isPackageInstalled "sdk"; then
     local dependency="${1}"
-    readlink "${HOME}/.sdkman/candidates/${dependency}/current"
+    readlink "${HOME}/.sdkman/candidates/${dependency}/current" | sed "s/.*\///"
   fi
 }
 
