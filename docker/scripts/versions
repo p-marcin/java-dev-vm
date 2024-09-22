@@ -22,6 +22,7 @@ main() {
   logVersion "FIREFOX" "$(getFirefoxVersion)"
   logSection "APPS"
   logVersion "INTELLIJ IDEA" "$(getIntellijIdeaVersion)"
+  logVersion "DBEAVER" "$(getDBeaverVersion)"
   logVersion "KEYSTORE EXPLORER" "$(getKeystoreExplorerVersion)"
   logVersion "POSTMAN" "$(getPostmanVersion)"
   logSection "VERSION CONTROL"
@@ -123,6 +124,11 @@ getFirefoxVersion() {
 getIntellijIdeaVersion() {
   [[ -d "/opt/intellij-idea" ]] \
     && jq ".version" "/opt/intellij-idea/product-info.json" | tr -d "\""
+}
+
+getDBeaverVersion() {
+  [[ -d "/opt/dbeaver" ]] \
+    && grep "version=" "/opt/dbeaver/.eclipseproduct" | sed "s/.*=//"
 }
 
 getKeystoreExplorerVersion() {
