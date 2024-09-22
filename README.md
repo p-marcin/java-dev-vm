@@ -127,6 +127,11 @@ In [restart.bat](batch-scripts/restart.bat) I defined **5** volumes:
 
 ### VHDX disk grows over time - how to shrink it?
 
+> [!WARNING]
+> This issue should be resolved in Docker Desktop 4.34.
+> 
+> According to the release notes: "_Starting from version 4.34 and later, Docker Desktop automatically manages the size of the managed VHDX and returns unused space to the operating system._"
+
 Deleting data in Docker Desktop (e.g. images, volumes) does not cause the size
 of [VHDX (Virtual Hard Disk)](https://en.wikipedia.org/wiki/VHD_(file_format)) to decrease. Once the VHDX grows it will
 remain that size, or grow larger as the amount of data increases.
