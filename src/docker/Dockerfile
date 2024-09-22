@@ -179,7 +179,7 @@ ENV USER=${image.user} \
 LABEL org.opencontainers.image.authors="https://github.com/${repo.owner}" \
       org.opencontainers.image.vendor="${repo.owner}" \
       org.opencontainers.image.title="${image.namespace}/${image.name}" \
-      org.opencontainers.image.description="Java DEV VM for Java Developers running on Windows in container (WSL2/Docker Desktop/MobaXterm)" \
+      org.opencontainers.image.description="Java DEV VM for Java Developers running on Windows in a container (WSL2/Docker Desktop/MobaXterm)" \
       org.opencontainers.image.ref.name="${image.name}" \
       org.opencontainers.image.version="v${image.version}" \
       org.opencontainers.image.source="https://github.com/${repo.owner}/${image.name}" \
@@ -311,12 +311,12 @@ COPY --from=dependencies                            /yad-panel/config           
 COPY --chmod=644                                    home-config/.root_environment   /root/.environment
 COPY --chmod=644                                    docker-config                   /etc/docker/
 COPY --chmod=644                                    yad-panel/service               /etc/systemd/system/
-RUN --mount=type=bind,source=home-config/firefox-user.js,target=/tmp/firefox-user.js \
+ARG VIRTUALENV_VERSION
+RUN --mount=type=bind,source=home-config/firefox-user.js,target=/mnt/firefox-user.js \
     echo "> Configure Firefox profile..." \
         && sudo -u ${USER} firefox --headless -CreateProfile ${USER} > /dev/null 2>&1 \
-        && cp "/tmp/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js"
-ARG VIRTUALENV_VERSION
-RUN echo "> Enable Yad-Panel..." \
+        && cp "/mnt/firefox-user.js" "/home/${USER}/.mozilla/firefox/$(ls "/home/${USER}/.mozilla/firefox" | grep "${USER}")/user.js" \
+    && echo "> Enable Yad-Panel..." \
         && systemctl enable yad-panel.service > /dev/null 2>&1 \
     && echo "> Configure Gedit..." \
         && dbus-run-session -- bash -c "gsettings set \"org.gnome.gedit.preferences.editor\" \"insert-spaces\" \"true\" \
@@ -380,9 +380,7 @@ RUN echo "> Enable Yad-Panel..." \
             "/var/log"/* \
             "/var/tmp"/*
 COPY --from=intellij-idea --chown=${USER}:${USER} /intellij-idea /opt/intellij-idea/
-WORKDIR /home/${USER}
-HEALTHCHECK --interval=5s --retries=3 --timeout=10s \
-  CMD systemctl status yad-panel | grep "Active: active (running)" || exit 1
 ARG BUILD_TIMESTAMP
 LABEL org.opencontainers.image.created="${BUILD_TIMESTAMP}"
+HEALTHCHECK --interval=5s --retries=3 --timeout=10s CMD systemctl status yad-panel | grep "Active: active (running)" || exit 1
 CMD [ "/bin/systemd" ]
