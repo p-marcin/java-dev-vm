@@ -86,6 +86,7 @@
         <docker.buildx.build.provenance>--provenance=false</docker.buildx.build.provenance>
         <docker.buildx.build.sbom>--sbom=false</docker.buildx.build.sbom>
         <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=false</docker.buildx.build.sbom.scan.context>
+        <docker.buildx.build.sbom.scan.stage>--build-arg=BUILDKIT_SBOM_SCAN_STAGE=false</docker.buildx.build.sbom.scan.stage>
         <docker.buildx.rm.keep.state>--keep-state=true</docker.buildx.rm.keep.state>
         <build.timestamp>${maven.build.timestamp}</build.timestamp>
         <image.namespace>javowiec</image.namespace>
@@ -247,6 +248,7 @@
                                 <argument>${docker.buildx.build.provenance}</argument>
                                 <argument>${docker.buildx.build.sbom}</argument>
                                 <argument>${docker.buildx.build.sbom.scan.context}</argument>
+                                <argument>${docker.buildx.build.sbom.scan.stage}</argument>
                                 <argument>--build-arg=BUILD_TIMESTAMP=${build.timestamp}</argument>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <argument>--build-arg=GIT_REVISION=${git.revision}</argument>
@@ -327,6 +329,7 @@
                 <docker.buildx.build.provenance>--provenance=true</docker.buildx.build.provenance>
                 <docker.buildx.build.sbom>--attest=type=sbom,generator=docker/scout-sbom-indexer:latest</docker.buildx.build.sbom>
                 <docker.buildx.build.sbom.scan.context>--build-arg=BUILDKIT_SBOM_SCAN_CONTEXT=true</docker.buildx.build.sbom.scan.context>
+                <docker.buildx.build.sbom.scan.stage>--build-arg=BUILDKIT_SBOM_SCAN_STAGE=true</docker.buildx.build.sbom.scan.stage>
             </properties>
         </profile>
         <profile>
