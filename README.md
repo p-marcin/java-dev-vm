@@ -223,6 +223,8 @@ Then use [Maven wrapper](https://maven.apache.org/wrapper/): [mvnw.cmd](mvnw.cmd
 .\mvnw.cmd clean package -Pultimate
 ```
 
+If you want to remove builder cache, use `prune-builder` Maven profile or open Docker Desktop, go to Volumes tab and remove `buildx_buildkit_ubuntu-dev-vm-builder0_state` volume manually.
+
 Older releases are removed from DockerHub. If you want to use older release for whatever reason, you need to build it
 yourself. In the [Releases](https://github.com/P-Marcin/ubuntu-dev-vm/releases) tab you can find zip with the source
 code.

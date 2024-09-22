@@ -23,7 +23,7 @@ docker container run --privileged --gpus all -d --restart unless-stopped ^
     --shm-size 2g ^
     javowiec/%imageName%:%imageVersion% > nul
 
-echo Cleaning unused images...
+echo Cleaning dangling images...
 docker image prune -f > nul
 
 echo DONE!
