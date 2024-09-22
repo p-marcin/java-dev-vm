@@ -26,7 +26,7 @@
         <!-- https://github.com/newren/git-filter-repo/releases -->
         <git-filter-repo.version>2.45.0</git-filter-repo.version>
         <!-- https://github.com/cli/cli/releases -->
-        <github-cli.version>2.56.0</github-cli.version>
+        <github-cli.version>2.57.0</github-cli.version>
         <!-- https://www.java.com/releases -->
         <jdk.version>21.0.4</jdk.version>
         <jdk.distribution>oracle</jdk.distribution>
@@ -47,7 +47,7 @@
         <!-- https://github.com/pnpm/pnpm/releases -->
         <pnpm.version>9.10.0</pnpm.version>
         <!-- https://github.com/yarnpkg/berry/releases -->
-        <yarn.version>4.4.1</yarn.version>
+        <yarn.version>4.5.0</yarn.version>
         <!-- https://github.com/gulpjs/gulp-cli/releases -->
         <gulp-cli.version>3.0.0</gulp-cli.version>
         <!-- https://github.com/pypa/virtualenv/releases -->
@@ -63,9 +63,9 @@
         <kubectl-krew.version>0.4.4</kubectl-krew.version>
         <!-- https://github.com/k3d-io/k3d/releases
              https://github.com/k3s-io/k3s/releases -->
-        <k3d.version>5.7.3</k3d.version>
+        <k3d.version>5.7.4</k3d.version>
         <!-- https://github.com/helm/helm/releases -->
-        <helm.version>3.16.0</helm.version>
+        <helm.version>3.16.1</helm.version>
 
         <!-- https://mvnrepository.com/artifact/org.testcontainers/testcontainers -->
         <testcontainers.version>1.20.1</testcontainers.version>
