@@ -63,7 +63,7 @@ RUN echo "> Preparation..." \
         && sed --in-place 's/\bfind\b/find -L/g' "${SDKMAN_DIR}/bin/sdkman-init.sh" "${SDKMAN_DIR}/src/sdkman-upgrade.sh" "${SDKMAN_DIR}/src/sdkman-list.sh" \
         && bash -c ". \"${SDKMAN_DIR}/bin/sdkman-init.sh\" \
     && echo \"> Install Maven...\" \
-        && sdk install \"maven\" \"${maven.version}\" > /dev/null 2>&1 \
+        && sdk install \"maven\" \"${mvn.version}\" > /dev/null 2>&1 \
     && echo \"> Install Spring Boot CLI...\" \
         && sdk install \"springboot\" \"${spring-boot-cli.version}\" > /dev/null 2>&1 \
         && sdk flush > /dev/null" \

@@ -166,8 +166,8 @@ class JavaDevVmTest {
         commandExecutor.assertPathExists(USER_HOME + "/.m2/repository");
         commandExecutor.assertPathExists(USER_HOME + "/.m2/settings.xml");
         commandExecutor.assertPathExists(USER_HOME + "/.m2/toolchains.xml");
-        commandExecutor.assertVersionEquals("maven.version", "readlink " + USER_HOME + "/.sdkman/candidates/maven/current");
-        commandExecutor.assertVersionEquals("maven.version", "mvn --version | grep \" Maven \" | sed \"s/.* Maven //;s/ .*//\"");
+        commandExecutor.assertVersionEquals("mvn.version", "readlink " + USER_HOME + "/.sdkman/candidates/maven/current");
+        commandExecutor.assertVersionEquals("mvn.version", "mvn --version | grep \" Maven \" | sed \"s/.* Maven //;s/ .*//\"");
     }
 
     @Test

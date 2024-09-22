@@ -33,7 +33,7 @@
         <jdk.distribution>oracle</jdk.distribution>
         <!-- https://maven.apache.org/docs/history.html -->
         <!-- Also regenerate Maven Wrapper: ./regenerate-mvn-wrapper.sh -->
-        <maven.version>3.9.9</maven.version>
+        <mvn.version>3.9.9</mvn.version>
         <!-- https://github.com/spring-projects/spring-boot/releases -->
         <spring-boot-cli.version>3.3.4</spring-boot-cli.version>
         <!-- https://github.com/async-profiler/async-profiler/releases -->
