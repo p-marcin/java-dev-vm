@@ -37,6 +37,8 @@
         <maven.version>3.9.9</maven.version>
         <!-- https://github.com/spring-projects/spring-boot/releases -->
         <spring-boot-cli.version>3.3.3</spring-boot-cli.version>
+        <!-- https://github.com/async-profiler/async-profiler/releases -->
+        <async-profiler.version>3.0</async-profiler.version>
         <!-- https://kafka.apache.org/downloads -->
         <kafka.version>3.8.0</kafka.version>
         <scala.version>2.13</scala.version>
@@ -262,6 +264,7 @@
                                 <argument>--build-arg=JAVA_VERSION=${java.version}-${java.distribution}</argument>
                                 <argument>--build-arg=MAVEN_VERSION=${maven.version}</argument>
                                 <argument>--build-arg=SPRING_BOOT_CLI_VERSION=${spring-boot-cli.version}</argument>
+                                <argument>--build-arg=ASYNC_PROFILER_VERSION=${async-profiler.version}</argument>
                                 <argument>--build-arg=KAFKA_VERSION=${kafka.version}</argument>
                                 <argument>--build-arg=SCALA_VERSION=${scala.version}</argument>
                                 <argument>--build-arg=NODE_VERSION=${node.version}</argument>
