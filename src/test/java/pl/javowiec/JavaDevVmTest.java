@@ -42,7 +42,7 @@ class JavaDevVmTest {
 
     @Test
     void testJavaDevVmVersion() throws IOException, InterruptedException {
-        commandExecutor.assertVersionEquals("image.version", "cat \"/etc/versions/java-dev-vm.version\"");
+        commandExecutor.assertVersionEquals("image.version", "cat \"/etc/versions/" + MAVEN.getProperty("image.name") + ".version\"");
     }
 
     @Test
