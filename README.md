@@ -90,6 +90,12 @@ make it run with Windows startup:
 
 ![MobaXterm -hideterm property](docs/images/mobaxterm-hideterm.png)
 
+Also, consider changing default settings. You can change the settings to below ones by right-clicking MobaXterm tray icon -> Show terminal -> Settings -> Configuration -> X11:
+
+![MobaXterm X11 Settings](docs/images/mobaxterm-x11-settings.png)
+
+Then, to turn MobaXterm window back to tray icon go to: View -> Iconify MobaXterm.
+
 ### 3. Start
 
 Make sure MobaXterm is started. Then start Docker Desktop. After that start Ubuntu DEV VM container. Enjoy!
