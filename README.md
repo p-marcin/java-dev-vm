@@ -26,7 +26,19 @@
 
 ## :pushpin: Introduction
 
-Java DEV VM for Java Developers running on Windows in container.
+The **Java DEV VM** is a **powerful development environment** designed specifically **for Java Developers working on
+Windows**. This Virtual Machine is based on Ubuntu, providing a familiar Linux environment that integrates seamlessly
+with Windows through Docker Desktop.
+
+The main advantage of the Java DEV VM is its **time-saving** nature. Developers no longer need to spend valuable time
+manually setting up their development environment or installing the necessary tools. Everything you need - such as Java,
+IDE,
+build tools, Version Control System, Docker, Kubernetes and so on - is **pre-configured and ready to go right out of the
+box**.
+
+With the Java DEV VM, developers can **focus on writing code and delivering high-quality software**, instead of worrying
+about installation issues or environment configuration. It's an ideal solution for anyone looking for a streamlined,
+efficient, and hassle-free Java development experience.
 
 It requires **3** dependencies:
 
@@ -37,7 +49,7 @@ It requires **3** dependencies:
   containerized applications and microservices. It provides a straightforward GUI (Graphical User Interface) that lets
   you manage your containers, applications, and images directly from your machine
 * [**MobaXterm Home Edition**](https://mobaxterm.mobatek.net/download.html) (X11 server) - lets you display
-  applications (e.g. [IntelliJ IDEA](https://www.jetbrains.com/idea/)) from Java DEV VM on your Windows
+  applications (e.g. IntelliJ IDEA) from Java DEV VM on your Windows
 
 Java DEV VM image can be pulled from DockerHub: https://hub.docker.com/r/javowiec/java-dev-vm:
 
@@ -59,7 +71,7 @@ For example IntelliJ IDEA:
 ![IntelliJ IDEA](docs/images/intellij-idea.gif)
 
 All applications having graphical interface (even the ones not included in the panel,
-e.g. [gedit text editor](https://help.gnome.org/users/gedit/stable/)) open as a separate window which you can move
+e.g. gedit text editor) open as a separate window which you can move
 freely:
 
 ![Windows Taskbar](docs/images/windows-taskbar.gif)
@@ -128,10 +140,10 @@ use [volumes](https://docs.docker.com/storage/volumes/) to enable persistence.
 In [restart.bat](batch-scripts/restart.bat) I defined **5** volumes:
 
 * `projects` under `/home/dev/projects` - a place where you can start your projects
-* `maven` under `/home/dev/.m2/repository` - local [Maven](https://maven.apache.org/) repository where artifacts are
+* `maven` under `/home/dev/.m2/repository` - local Maven repository where artifacts are
   stored
 * `home` under `/home/dev` - home directory of Java DEV VM user
-* `docker` under `/var/lib/docker` - a place where docker stores the data (e.g. downloaded images)
+* `docker` under `/var/lib/docker` - a place where Docker stores the data (e.g. downloaded images)
 * `/mnt/shared` - a shared place between Java DEV VM and `C:\Users\${username}\shared` on Windows
 
 ## :pushpin: Known Issues
@@ -154,7 +166,8 @@ If you want to recover some of the disk space on Windows that is being consumed 
 
 See example batch script which automates the shrinking of VHDX
 via [diskpart](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/diskpart) Windows
-utility: [shrink-vhdx.bat](batch-scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables if
+utility: [shrink-vhdx.bat](deprecated/scripts/shrink-vhdx.bat). Change the value of `vhdxFile` and `vhdxPath` variables
+if
 the name/path of your VHDX is different.
 
 :warning: **WARNING: Shut down Docker Desktop before running the script!**
@@ -194,14 +207,14 @@ issues when creating a k3s kubernetes cluster with [k3d](https://k3d.io).
 
 ## :pushpin: Useful Scripts
 
-On Java DEV VM there are some useful scripts which you can use. See [src/docker/scripts](src/docker/scripts).
+On Java DEV VM there are some [useful scripts](src/docker/scripts) which you can use.
 
 <details>
   <summary>Click here to see an example</summary>
   <br>
   <p>If you want to check versions installed (see
   also <a href="https://github.com/P-Marcin/java-dev-vm/releases">Releases</a> tab), type:</p>
-  <img src="docs/images/versions.gif" alt="Versions" width="500px">
+  <img src="docs/images/versions.gif" alt="Versions" width="550px">
 </details>
 
 ## :pushpin: Useful Aliases
