@@ -8,7 +8,8 @@ release:
     releaseName: '{{tagName}}'
     overwrite: true
     issues:
-      enabled: true
+      # Also add "permissions: issues: write" to GitHub Actions
+      enabled: false
     changelog:
       formatted: ALWAYS
       preset: conventional-commits
