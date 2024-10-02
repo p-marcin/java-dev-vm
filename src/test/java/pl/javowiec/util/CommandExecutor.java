@@ -28,7 +28,8 @@ public record CommandExecutor(GenericContainer<?> container) {
     }
 
     public String getCommandOutput(String command) throws IOException, InterruptedException {
-        GenericContainer.ExecResult executedCommand = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
+        GenericContainer.ExecResult executedCommand = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", command));
         assertThat(executedCommand.getExitCode()).isZero();
         return executedCommand.getStdout()
                 .trim();
@@ -40,7 +41,8 @@ public record CommandExecutor(GenericContainer<?> container) {
         assertThat(ls.getStdout()).contains(expected);
     }
 
-    public void assertPathExistsAndDoesNotContain(String path, String... expected) throws IOException, InterruptedException {
+    public void assertPathExistsAndDoesNotContain(String path, String... expected) throws IOException,
+            InterruptedException {
         GenericContainer.ExecResult ls = container().execInContainer(commandAsImageUser("ls", "-a", path));
         assertThat(ls.getExitCode()).isZero();
         assertThat(ls.getStdout()).doesNotContain(expected);
@@ -51,32 +53,38 @@ public record CommandExecutor(GenericContainer<?> container) {
         assertThat(ls.getExitCode()).isZero();
     }
 
-    public void assertExecutablePathEquals(String executable, String expectedPath) throws IOException, InterruptedException {
-        GenericContainer.ExecResult command = container().execInContainer(commandAsImageUser("bash", "-i", "-c", "command -v " + executable));
+    public void assertExecutablePathEquals(String executable, String expectedPath) throws IOException,
+            InterruptedException {
+        GenericContainer.ExecResult command = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", "command -v " + executable));
         assertThat(command.getExitCode()).isZero();
         assertThat(command.getStdout()).isEqualToIgnoringNewLines(expectedPath);
     }
 
     public void assertExecutablePathAndSymLinkEquals(String executable, String expectedPath, String expectedLink) throws IOException, InterruptedException {
-        GenericContainer.ExecResult command = container().execInContainer(commandAsImageUser("bash", "-i", "-c", "command -v " + executable));
+        GenericContainer.ExecResult command = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", "command -v " + executable));
         assertThat(command.getExitCode()).isZero();
         assertThat(command.getStdout()).isEqualToIgnoringNewLines(expectedPath);
         assertSymLinkEquals(expectedPath, expectedLink);
     }
 
     public void assertSymLinkEquals(String expectedPath, String expectedLink) throws IOException, InterruptedException {
-        GenericContainer.ExecResult readLink = container().execInContainer(commandAsImageUser("readlink", expectedPath));
+        GenericContainer.ExecResult readLink = container().execInContainer(
+                commandAsImageUser("readlink", expectedPath));
         assertThat(readLink.getExitCode()).isZero();
         assertThat(readLink.getStdout()).isEqualToIgnoringNewLines(expectedLink);
     }
 
     public void assertNotSymLink(String expectedPath) throws IOException, InterruptedException {
-        GenericContainer.ExecResult readLink = container().execInContainer(commandAsImageUser("readlink", expectedPath));
+        GenericContainer.ExecResult readLink = container().execInContainer(
+                commandAsImageUser("readlink", expectedPath));
         assertThat(readLink.getExitCode()).isNotZero();
     }
 
     public void assertVersionEquals(String mavenProperty, String command) throws IOException, InterruptedException {
-        GenericContainer.ExecResult version = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
+        GenericContainer.ExecResult version = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", command));
         assertThat(version.getExitCode()).isZero();
         assertThat(version.getStdout()).isEqualToIgnoringNewLines(convertMavenProperty(mavenProperty));
     }
@@ -88,19 +96,22 @@ public record CommandExecutor(GenericContainer<?> container) {
     }
 
     public void assertVersionStartsWith(String mavenProperty, String command) throws IOException, InterruptedException {
-        GenericContainer.ExecResult version = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
+        GenericContainer.ExecResult version = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", command));
         assertThat(version.getExitCode()).isZero();
         assertThat(version.getStdout()).startsWith(MAVEN.getProperty(mavenProperty));
     }
 
     public void assertVersionNotEmpty(String command) throws IOException, InterruptedException {
-        GenericContainer.ExecResult version = container().execInContainer(commandAsImageUser("bash", "-i", "-c", command));
+        GenericContainer.ExecResult version = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", command));
         assertThat(version.getExitCode()).isZero();
         assertThat(version.getStdout()).isNotEmpty();
     }
 
     public void assertEnvPropertyEquals(String envProperty, String expected) throws IOException, InterruptedException {
-        GenericContainer.ExecResult env = container().execInContainer(commandAsImageUser("bash", "-i", "-c", "echo $" + envProperty));
+        GenericContainer.ExecResult env = container().execInContainer(
+                commandAsImageUser("bash", "-i", "-c", "echo $" + envProperty));
         assertThat(env.getExitCode()).isZero();
         assertThat(env.getStdout()).isEqualToIgnoringNewLines(expected);
     }
@@ -111,11 +122,14 @@ public record CommandExecutor(GenericContainer<?> container) {
         assertThat(cat.getStdout()).contains(expected);
     }
 
-    public void assertFileContains(String path, int count, String content1, String content2) throws IOException, InterruptedException {
-        GenericContainer.ExecResult grepFind = container().execInContainer(commandAsImageUser("grep", "-R", content1, path));
+    public void assertFileContains(String path, int count, String content1, String content2) throws IOException,
+            InterruptedException {
+        GenericContainer.ExecResult grepFind = container().execInContainer(
+                commandAsImageUser("grep", "-R", content1, path));
         assertThat(grepFind.getExitCode()).isZero();
         assertThat(grepFind.getStdout()).hasLineCount(count);
-        GenericContainer.ExecResult grepFindL = container().execInContainer(commandAsImageUser("grep", "-R", content2, path));
+        GenericContainer.ExecResult grepFindL = container().execInContainer(
+                commandAsImageUser("grep", "-R", content2, path));
         assertThat(grepFindL.getExitCode()).isZero();
         assertThat(grepFindL.getStdout()).hasLineCount(count);
     }

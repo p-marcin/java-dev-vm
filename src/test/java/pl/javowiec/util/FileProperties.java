@@ -1,10 +1,11 @@
 package pl.javowiec.util;
 
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Enum representing various file properties configurations.
