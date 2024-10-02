@@ -113,7 +113,7 @@ RUN echo "> Preparation..." \
         && tar --extract --gzip --no-same-owner --directory="/docker/cli-plugins" --file="docker-scout.tar.gz" "docker-scout" \
         && chmod +x "/docker/cli-plugins/docker-scout" \
     && echo "> Install Kubectl..." \
-        && wget -q -O "/binaries/kubectl" "https://storage.googleapis.com/kubernetes-release/release/v${kubectl.version}/bin/linux/amd64/kubectl" \
+        && wget -q -O "/binaries/kubectl" "https://dl.k8s.io/release/v${kubectl.version}/bin/linux/amd64/kubectl" \
         && chmod +x "/binaries/kubectl" \
         && /binaries/kubectl completion bash > "/bash_completion.d/kubectl" \
     && echo "> Install Kubectl Krew..." \
