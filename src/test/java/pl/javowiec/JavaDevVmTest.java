@@ -25,15 +25,13 @@ import pl.javowiec.util.CommandExecutor;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class JavaDevVmTest {
 
-    private static final String IMAGE_TAG = MAVEN.getProperty("image.namespace")
-            + "/" + MAVEN.getProperty("image.name")
-            + ":" + MAVEN.getProperty("image.version")
-            + "-" + MAVEN.getProperty("image.tag.edition")
-            + MAVEN.getProperty("image.tag.ea");
+    private static final String IMAGE_TAG = MAVEN.getProperty("image.namespace") + "/" + MAVEN.getProperty(
+            "image.name") + ":" + MAVEN.getProperty("image.version") + "-" + MAVEN.getProperty(
+            "image.tag.edition") + MAVEN.getProperty("image.tag.ea");
 
     @Container
-    private static final GenericContainer<?> JAVA_DEV_VM = new GenericContainer<>(DockerImageName.parse(IMAGE_TAG))
-            .withPrivilegedMode(true)
+    private static final GenericContainer<?> JAVA_DEV_VM = new GenericContainer<>(
+            DockerImageName.parse(IMAGE_TAG)).withPrivilegedMode(true)
             .withCreateContainerCmdModifier(cmd -> cmd.withVolumes(new Volume("/var/lib/docker")));
 
     private final CommandExecutor commandExecutor = new CommandExecutor(JAVA_DEV_VM);
@@ -46,12 +44,14 @@ class JavaDevVmTest {
 
     @Test
     void testJavaDevVmVersion() throws IOException, InterruptedException {
-        commandExecutor.assertVersionEquals("image.version", "cat \"/etc/versions/" + MAVEN.getProperty("image.name") + ".version\"");
+        commandExecutor.assertVersionEquals("image.version",
+                "cat \"/etc/versions/" + MAVEN.getProperty("image.name") + ".version\"");
     }
 
     @Test
     void testUbuntu() throws IOException, InterruptedException {
-        commandExecutor.assertVersionStartsWith("ubuntu.version", "grep \"VERSION=\" \"/etc/os-release\" | sed \"s/.*=\\\"//;s/ .*//\"");
+        commandExecutor.assertVersionStartsWith("ubuntu.version",
+                "grep \"VERSION=\" \"/etc/os-release\" | sed \"s/.*=\\\"//;s/ .*//\"");
     }
 
     @Test
@@ -59,14 +59,16 @@ class JavaDevVmTest {
         commandExecutor.assertPathExistsAndContains("/opt/kitty", "bin", "lib");
         commandExecutor.assertPathExists(USER_HOME + "/.config/kitty/kitty.conf");
         commandExecutor.assertExecutablePathAndSymLinkEquals("kitty", "/usr/local/bin/kitty", "/opt/kitty/bin/kitty");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("kitten", "/usr/local/bin/kitten", "/opt/kitty/bin/kitten");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("kitten", "/usr/local/bin/kitten",
+                "/opt/kitty/bin/kitten");
         commandExecutor.assertVersionEquals("kitty.version", "kitty --version | sed \"s/kitty //;s/ .*//\"");
         commandExecutor.assertVersionEquals("kitty.version", "kitten --version | sed \"s/kitten //;s/ .*//\"");
     }
 
     @Test
     void testFirefox() throws IOException, InterruptedException {
-        String firefoxProfile = commandExecutor.getCommandOutput("ls \"" + USER_HOME + "/.mozilla/firefox\" | grep \"" + IMAGE_USER + "\"");
+        String firefoxProfile = commandExecutor.getCommandOutput(
+                "ls \"" + USER_HOME + "/.mozilla/firefox\" | grep \"" + IMAGE_USER + "\"");
         commandExecutor.assertPathExists(USER_HOME + "/.mozilla/firefox/" + firefoxProfile + "/user.js");
         commandExecutor.assertExecutablePathEquals("firefox", "/usr/bin/firefox");
         commandExecutor.assertVersionNotEmpty("firefox --version | sed \"s/.* //\"");
@@ -76,33 +78,41 @@ class JavaDevVmTest {
     void testIntellijIdea() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/intellij-idea", "bin");
         commandExecutor.assertPathExistsAndDoesNotContain("/opt/intellij-idea", "help");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("idea", "/usr/local/bin/idea", "/opt/intellij-idea/bin/idea");
-        commandExecutor.assertVersionEquals("intellij-idea.version", "jq \".version\" \"/opt/intellij-idea/product-info.json\" | tr -d \"\\\"\"");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("idea", "/usr/local/bin/idea",
+                "/opt/intellij-idea/bin/idea");
+        commandExecutor.assertVersionEquals("intellij-idea.version",
+                "jq \".version\" \"/opt/intellij-idea/product-info.json\" | tr -d \"\\\"\"");
     }
 
     @Test
     void testDBeaver() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/dbeaver", "dbeaver", "dbeaver.ini");
         commandExecutor.assertPathExistsAndDoesNotContain("/opt/dbeaver", "dbeaver-ce.desktop", "readme ");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("dbeaver", "/usr/local/bin/dbeaver", "/opt/dbeaver/dbeaver");
-        commandExecutor.assertVersionEquals("dbeaver.version", "grep \"version=\" \"/opt/dbeaver/.eclipseproduct\" | sed \"s/.*=//\"");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("dbeaver", "/usr/local/bin/dbeaver",
+                "/opt/dbeaver/dbeaver");
+        commandExecutor.assertVersionEquals("dbeaver.version",
+                "grep \"version=\" \"/opt/dbeaver/.eclipseproduct\" | sed \"s/.*=//\"");
     }
 
     @Test
     void testPostman() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/postman", "postman");
         commandExecutor.assertPathExistsAndDoesNotContain("/opt/postman", "Postman");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("postman", "/usr/local/bin/postman", "/opt/postman/postman");
-        commandExecutor.assertVersionNotEmpty("jq \".version\" \"/opt/postman/resources/app/package.json\" | tr -d \"\\\"\"");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("postman", "/usr/local/bin/postman",
+                "/opt/postman/postman");
+        commandExecutor.assertVersionNotEmpty(
+                "jq \".version\" \"/opt/postman/resources/app/package.json\" | tr -d \"\\\"\"");
     }
 
     @Test
     void testKeyStoreExplorer() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/keystore-explorer", "kse.sh", "kse.jar");
         commandExecutor.assertPathExistsAndDoesNotContain("/opt/keystore-explorer", "kse.exe", "JavaInfo.dll");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("kse", "/usr/local/bin/kse", "/opt/keystore-explorer/kse.sh");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("kse", "/usr/local/bin/kse",
+                "/opt/keystore-explorer/kse.sh");
         commandExecutor.assertVersionEquals("keystore-explorer.version",
-                "unzip -p \"/opt/keystore-explorer/kse.jar\" \"org/kse/version.properties\" | grep \"KSE.Version\" | sed \"s/.*=//\"");
+                "unzip -p \"/opt/keystore-explorer/kse.jar\" \"org/kse/version.properties\" | grep \"KSE.Version\" | " +
+                        "sed \"s/.*=//\"");
     }
 
     @Test
@@ -128,7 +138,8 @@ class JavaDevVmTest {
     void testGitHubCLI() throws IOException, InterruptedException {
         commandExecutor.assertExecutablePathEquals("gh", "/usr/local/bin/gh");
         commandExecutor.assertPathExists("/etc/bash_completion.d/gh");
-        commandExecutor.assertVersionEquals("github-cli.version", "gh --version | grep gh | sed \"s/.*version //;s/ (.*//\"");
+        commandExecutor.assertVersionEquals("github-cli.version",
+                "gh --version | grep gh | sed \"s/.*version //;s/ (.*//\"");
     }
 
     @Test
@@ -138,9 +149,11 @@ class JavaDevVmTest {
                 MAVEN.getProperty("jdk-sts.version") + "-" + MAVEN.getProperty("jdk.distribution"));
         commandExecutor.assertPathExistsAndDoesNotContain(USER_HOME + "/.sdkman/candidates", "java");
         commandExecutor.assertVersionEquals("jdk-lts.version&jdk.distribution", "readlink " + "/opt/java/current");
-        commandExecutor.assertVersionEquals("jdk-lts.version", "java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
-        commandExecutor.assertVersionEquals("jdk-sts.version", "/opt/java/" + MAVEN.getProperty("jdk-sts.version")
-                + "-" + MAVEN.getProperty("jdk.distribution") + "/bin/java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
+        commandExecutor.assertVersionEquals("jdk-lts.version",
+                "java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
+        commandExecutor.assertVersionEquals("jdk-sts.version",
+                "/opt/java/" + MAVEN.getProperty("jdk-sts.version") + "-" + MAVEN.getProperty(
+                        "jdk.distribution") + "/bin/java --version | grep \"java\" | sed \"s/java //;s/ .*//\"");
     }
 
     @Test
@@ -150,9 +163,9 @@ class JavaDevVmTest {
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.sdkman/src", "/opt/sdkman/src");
         commandExecutor.assertNotSymLink(USER_HOME + "/.sdkman/candidates");
         commandExecutor.assertEnvPropertyEquals("SDKMAN_DIR", USER_HOME + "/.sdkman");
-        commandExecutor.assertFileContains(USER_HOME + "/.sdkman/etc/config",
-                "sdkman_auto_answer=true", "sdkman_auto_env=true", "sdkman_colour_enable=false",
-                "sdkman_curl_connect_timeout=10", "sdkman_curl_max_time=120", "sdkman_selfupdate_feature=false");
+        commandExecutor.assertFileContains(USER_HOME + "/.sdkman/etc/config", "sdkman_auto_answer=true",
+                "sdkman_auto_env=true", "sdkman_colour_enable=false", "sdkman_curl_connect_timeout=10",
+                "sdkman_curl_max_time=120", "sdkman_selfupdate_feature=false");
         commandExecutor.assertFileContains(USER_HOME + "/.sdkman/bin", 1, "\\$(find", "\\$(find -L");
         commandExecutor.assertFileContains(USER_HOME + "/.sdkman/src", 2, "\\$(find", "\\$(find -L");
         commandExecutor.assertVersionNotEmpty("cat " + USER_HOME + "/.sdkman/var/version");
@@ -166,25 +179,32 @@ class JavaDevVmTest {
         commandExecutor.assertPathExists(USER_HOME + "/.m2/repository");
         commandExecutor.assertPathExists(USER_HOME + "/.m2/settings.xml");
         commandExecutor.assertPathExists(USER_HOME + "/.m2/toolchains.xml");
-        commandExecutor.assertVersionEquals("mvn.version", "readlink " + USER_HOME + "/.sdkman/candidates/maven/current");
-        commandExecutor.assertVersionEquals("mvn.version", "mvn --version | grep \" Maven \" | sed \"s/.* Maven //;s/ .*//\"");
+        commandExecutor.assertVersionEquals("mvn.version",
+                "readlink " + USER_HOME + "/.sdkman/candidates/maven/current");
+        commandExecutor.assertVersionEquals("mvn.version",
+                "mvn --version | grep \" Maven \" | sed \"s/.* Maven //;s/ .*//\"");
     }
 
     @Test
     void testSpringBootCLI() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/sdkman/candidates", "springboot");
-        commandExecutor.assertSymLinkEquals(USER_HOME + "/.sdkman/candidates/springboot", "/opt/sdkman/candidates/springboot");
-        commandExecutor.assertVersionEquals("spring-boot-cli.version", "readlink " + USER_HOME + "/.sdkman/candidates/springboot/current");
+        commandExecutor.assertSymLinkEquals(USER_HOME + "/.sdkman/candidates/springboot",
+                "/opt/sdkman/candidates/springboot");
+        commandExecutor.assertVersionEquals("spring-boot-cli.version",
+                "readlink " + USER_HOME + "/.sdkman/candidates/springboot/current");
         commandExecutor.assertVersionEquals("spring-boot-cli.version", "spring --version | sed \"s/.* v//\"");
     }
 
     @Test
     void testAsyncProfiler() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/async-profiler", "bin", "lib");
-        commandExecutor.assertExecutablePathAndSymLinkEquals("asprof", "/usr/local/bin/asprof", "/opt/async-profiler/bin/asprof");
-        commandExecutor.assertVersionEquals("async-profiler.version", "asprof --version | sed \"s/.*profiler //;s/ .*//\"");
+        commandExecutor.assertExecutablePathAndSymLinkEquals("asprof", "/usr/local/bin/asprof",
+                "/opt/async-profiler/bin/asprof");
+        commandExecutor.assertVersionEquals("async-profiler.version",
+                "asprof --version | sed \"s/.*profiler //;s/ .*//\"");
         commandExecutor.assertPathExists("/etc/sysctl.d/999-async-profiler.conf");
-        commandExecutor.assertCommandOutputEquals("kernel.perf_event_paranoid = 1", "sysctl kernel.perf_event_paranoid");
+        commandExecutor.assertCommandOutputEquals("kernel.perf_event_paranoid = 1",
+                "sysctl kernel.perf_event_paranoid");
         commandExecutor.assertCommandOutputEquals("kernel.kptr_restrict = 0", "sysctl kernel.kptr_restrict");
     }
 
@@ -193,7 +213,8 @@ class JavaDevVmTest {
         commandExecutor.assertPathExistsAndContains("/opt/kafka", "bin", "config", "libs");
         commandExecutor.assertPathExistsAndDoesNotContain("/opt/kafka/bin", "windows");
         commandExecutor.assertExecutablePathEquals("kafka-topics.sh", "/opt/kafka/bin/kafka-topics.sh");
-        commandExecutor.assertVersionEquals("kafka.version", "ls \"/opt/kafka/libs\" | grep -m 1 \"kafka-server\" | sed \"s/.*-//;s/.jar//\"");
+        commandExecutor.assertVersionEquals("kafka.version",
+                "ls \"/opt/kafka/libs\" | grep -m 1 \"kafka-server\" | sed \"s/.*-//;s/.jar//\"");
     }
 
     @Test
@@ -260,9 +281,11 @@ class JavaDevVmTest {
     void testVirtualenv() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/pipx", "virtualenv");
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.local/share/pipx/venvs/virtualenv", "/opt/pipx/virtualenv");
-        commandExecutor.assertSymLinkEquals(USER_HOME + "/.local/bin/virtualenv", USER_HOME + "/.local/share/pipx/venvs/virtualenv/bin/virtualenv");
+        commandExecutor.assertSymLinkEquals(USER_HOME + "/.local/bin/virtualenv",
+                USER_HOME + "/.local/share/pipx/venvs/virtualenv/bin/virtualenv");
         commandExecutor.assertExecutablePathEquals("virtualenv", USER_HOME + "/.local/bin/virtualenv");
-        commandExecutor.assertVersionEquals("virtualenv.version", "virtualenv --version | sed \"s/virtualenv //;s/ from.*//\"");
+        commandExecutor.assertVersionEquals("virtualenv.version",
+                "virtualenv --version | sed \"s/virtualenv //;s/ from.*//\"");
     }
 
     @Test
@@ -299,26 +322,31 @@ class JavaDevVmTest {
     @Test
     void testDockerScout() throws IOException, InterruptedException {
         commandExecutor.assertPathExists("/usr/local/lib/docker/cli-plugins/docker-scout");
-        commandExecutor.assertVersionEquals("docker-scout.version", "docker scout version | grep version | sed \"s/.* v//;s/ (.*//\"");
+        commandExecutor.assertVersionEquals("docker-scout.version",
+                "docker scout version | grep version | sed \"s/.* v//;s/ (.*//\"");
     }
 
     @Test
     void testKubectl() throws IOException, InterruptedException {
         commandExecutor.assertExecutablePathEquals("kubectl", "/usr/local/bin/kubectl");
         commandExecutor.assertPathExists("/etc/bash_completion.d/kubectl");
-        commandExecutor.assertVersionEquals("kubectl.version", "kubectl version --client | grep \"Client Version:\" | sed \"s/.*v//\"");
+        commandExecutor.assertVersionEquals("kubectl.version",
+                "kubectl version --client | grep \"Client Version:\" | sed \"s/.*v//\"");
     }
 
     @Test
     void testKubectlKrew() throws IOException, InterruptedException {
         commandExecutor.assertPathExistsAndContains("/opt/krew", "index", "receipts", "store");
         commandExecutor.assertPathExistsAndContains(USER_HOME + "/.krew", "bin", "index", "receipts", "store");
-        commandExecutor.assertSymLinkEquals("/opt/krew/store/krew/current", "v" + MAVEN.getProperty("kubectl-krew.version"));
+        commandExecutor.assertSymLinkEquals("/opt/krew/store/krew/current",
+                "v" + MAVEN.getProperty("kubectl-krew.version"));
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.krew/store/krew", "/opt/krew/store/krew");
-        commandExecutor.assertSymLinkEquals(USER_HOME + "/.krew/bin/kubectl-krew", USER_HOME + "/.krew/store/krew/current/krew");
+        commandExecutor.assertSymLinkEquals(USER_HOME + "/.krew/bin/kubectl-krew",
+                USER_HOME + "/.krew/store/krew/current/krew");
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.krew/index", "/opt/krew/index");
         commandExecutor.assertSymLinkEquals(USER_HOME + "/.krew/receipts/krew.yaml", "/opt/krew/receipts/krew.yaml");
-        commandExecutor.assertVersionEquals("kubectl-krew.version", "kubectl krew version | grep \"GitTag\" | sed \"s/.*v//\"");
+        commandExecutor.assertVersionEquals("kubectl-krew.version",
+                "kubectl krew version | grep \"GitTag\" | sed \"s/.*v//\"");
     }
 
     @Test
@@ -333,13 +361,16 @@ class JavaDevVmTest {
     void testHelm() throws IOException, InterruptedException {
         commandExecutor.assertExecutablePathEquals("helm", "/usr/local/bin/helm");
         commandExecutor.assertPathExists("/etc/bash_completion.d/helm");
-        commandExecutor.assertVersionEquals("helm.version", "helm version --template=\"Version: {{.Version}}\" | sed \"s/.*v//\"");
+        commandExecutor.assertVersionEquals("helm.version",
+                "helm version --template=\"Version: {{.Version}}\" | sed \"s/.*v//\"");
     }
 
     @Test
     void versionsOutput() throws IOException, InterruptedException {
         commandExecutor.assertCommandOutputEquals("Versions saved to: /tmp/versions.md", "versions -o");
-        JAVA_DEV_VM.copyFileFromContainer("/tmp/versions.md", MAVEN.getProperty("project.build.directory") + "/versions-" + MAVEN.getProperty("image.tag.edition") + ".md");
+        JAVA_DEV_VM.copyFileFromContainer("/tmp/versions.md",
+                MAVEN.getProperty("project.build.directory") + "/versions-" + MAVEN.getProperty(
+                        "image.tag.edition") + ".md");
     }
 
 }
