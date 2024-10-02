@@ -14,11 +14,11 @@
              https://github.com/test-kitchen/dokken-images/blob/main/ubuntu-24.04/Dockerfile -->
         <ubuntu.version>24.04</ubuntu.version>
         <!-- https://github.com/kovidgoyal/kitty/releases -->
-        <kitty.version>0.36.2</kitty.version>
+        <kitty.version>0.36.4</kitty.version>
         <!-- https://www.jetbrains.com/idea/download/other.html -->
-        <intellij-idea.version>2024.2.2</intellij-idea.version>
+        <intellij-idea.version>2024.2.3</intellij-idea.version>
         <!-- https://github.com/dbeaver/dbeaver/releases -->
-        <dbeaver.version>24.2.0</dbeaver.version>
+        <dbeaver.version>24.2.1</dbeaver.version>
         <!-- https://www.postman.com/release-notes/postman-app -->
         <postman.version>latest</postman.version>
         <!-- https://github.com/kaikramer/keystore-explorer/releases -->
@@ -26,7 +26,7 @@
         <!-- https://github.com/newren/git-filter-repo/releases -->
         <git-filter-repo.version>2.45.0</git-filter-repo.version>
         <!-- https://github.com/cli/cli/releases -->
-        <github-cli.version>2.57.0</github-cli.version>
+        <github-cli.version>2.58.0</github-cli.version>
         <!-- https://www.java.com/releases -->
         <jdk-lts.version>21.0.4</jdk-lts.version>
         <jdk-sts.version>23</jdk-sts.version>
@@ -46,20 +46,20 @@
              https://github.com/npm/cli/releases -->
         <node.version>20.17.0</node.version>
         <!-- https://github.com/pnpm/pnpm/releases -->
-        <pnpm.version>9.11.0</pnpm.version>
+        <pnpm.version>9.12.0</pnpm.version>
         <!-- https://github.com/yarnpkg/berry/releases -->
         <yarn.version>4.5.0</yarn.version>
         <!-- https://github.com/gulpjs/gulp-cli/releases -->
         <gulp-cli.version>3.0.0</gulp-cli.version>
         <!-- https://github.com/pypa/virtualenv/releases -->
-        <virtualenv.version>20.26.4</virtualenv.version>
+        <virtualenv.version>20.26.5</virtualenv.version>
         <!-- https://go.dev/doc/devel/release -->
-        <go.version>1.23.1</go.version>
+        <go.version>1.23.2</go.version>
         <!-- https://github.com/docker/scout-cli/releases -->
-        <docker-scout.version>1.13.0</docker-scout.version>
+        <docker-scout.version>1.14.0</docker-scout.version>
         <!-- https://kubernetes.io/releases
              https://github.com/kubernetes/kubernetes/releases -->
-        <kubectl.version>1.31.0</kubectl.version>
+        <kubectl.version>1.31.1</kubectl.version>
         <!-- https://github.com/kubernetes-sigs/krew/releases -->
         <kubectl-krew.version>0.4.4</kubectl-krew.version>
         <!-- https://github.com/k3d-io/k3d/releases
