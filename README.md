@@ -7,13 +7,13 @@
       <img src="https://img.shields.io/badge/Dockerfile-1350CC?logo=docker&logoColor=white" alt="Dockerfile"/>
   </a>
   <a href="https://hub.docker.com/r/javowiec/java-dev-vm" rel="noreferrer">
-      <img src="https://img.shields.io/docker/pulls/javowiec/java-dev-vm?label=Docker%20Pulls&logo=docker&logoColor=white&color=1350CC" alt="Docker Pulls"/>
+      <img src="https://img.shields.io/docker/pulls/javowiec/java-dev-vm?label=Docker%20Pulls&logo=docker&logoColor=white&color=1350CC&cacheSeconds=21600" alt="Docker Pulls"/>
   </a>
   <a href="https://github.com/p-marcin/java-dev-vm/releases" rel="noreferrer">
       <img src="https://img.shields.io/github/v/release/p-marcin/java-dev-vm?label=Latest%20Release&logo=github&logoColor=white" alt="Latest Release"/>
   </a>
   <a href="LICENSE" rel="noreferrer">
-      <img src="https://img.shields.io/github/license/p-marcin/java-dev-vm.svg?label=License&logo=googledocs&logoColor=white" alt="License"/>
+      <img src="https://img.shields.io/github/license/p-marcin/java-dev-vm?label=License&logo=googledocs&logoColor=white" alt="License"/>
   </a>
   <br>
   <a href="https://github.com/p-marcin/java-dev-vm/actions/workflows/main.yml" rel="noreferrer">
