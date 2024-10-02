@@ -1,7 +1,7 @@
 :: RESTARTS CONTAINER
 @echo off
 setlocal
-set imageVersion=24.09.6-community
+set imageVersion=24.10.1-community
 set imageName=java-dev-vm
 
 echo Stopping %imageName%...
