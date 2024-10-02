@@ -193,6 +193,7 @@ RUN echo "> Install packages..." \
             # Utilities
             bash-completion \
             curl \
+            fonts-noto-color-emoji fontconfig \
             gedit \
             gnome-keyring \
             gnupg \
@@ -240,6 +241,8 @@ Pin-Priority: -1\n" > "/etc/apt/preferences.d/mozilla-firefox" \
             git git-lfs \
             firefox libpci3 \
             > /dev/null \
+    && echo "> Build font cache..." \
+        && fc-cache \
     && echo "> Setup Systemd..." \
         && find "/etc/systemd/system" \
             "/lib/systemd/system" \
